@@ -76,7 +76,8 @@ done
 
 # List of configure options was taken from
 # https://github.com/wxHaskell/wxHaskell/blob/master/install.txt
-if [ ! -e "$WX_WIDGETS_BUILD_DIR/guard-configure" ]; then
+WX_WIDGETS_GUARD_PREFIX="$ROOT_DIR/$WX_WIDGETS_BUILD_DIR/guard-"
+if [ ! -e "${WX_WIDGETS_GUARD_PREFIX}configure" ]; then
     (
         cd "$WX_WIDGETS_BUILD_DIR"
         ../$WX_WIDGETS_DIR/configure \
@@ -90,23 +91,23 @@ if [ ! -e "$WX_WIDGETS_BUILD_DIR/guard-configure" ]; then
             --enable-ribbon \
             --enable-richtext \
             --with-opengl \
-        && touch "$WX_WIDGETS_BUILD_DIR/guard-configure"
+        && touch "${WX_WIDGETS_GUARD_PREFIX}configure"
     )
 fi
 
-if [ ! -e "$WX_WIDGETS_BUILD_DIR/guard-build" ]; then
+if [ ! -e "${WX_WIDGETS_GUARD_PREFIX}build" ]; then
     (
         cd "$WX_WIDGETS_BUILD_DIR"
         make \
-        && touch "$WX_WIDGETS_BUILD_DIR/guard-build"
+        && touch "${WX_WIDGETS_GUARD_PREFIX}build"
     )
 fi
 
-if [ ! -e "$WX_WIDGETS_BUILD_DIR/guard-install" ]; then
+if [ ! -e "${WX_WIDGETS_GUARD_PREFIX}install" ]; then
     (
         cd "$WX_WIDGETS_BUILD_DIR"
         make install \
-        && touch "$WX_WIDGETS_BUILD_DIR/guard-install"
+        && touch "${WX_WIDGETS_GUARD_PREFIX}install"
     )
 fi
 
