@@ -58,7 +58,7 @@ if [ ! -e "$WX_WIDGETS_FILE" ]; then
 fi
 
 if [ ! -e "$WX_WIDGETS_DIR" ]; then
-    tar xjf "$WX_WIDGETS_DIR"
+    tar xjf "$WX_WIDGETS_FILE"
 fi
 
 for D in "$WX_WIDGETS_BUILD_DIR" "$WX_WIDGETS_INSTALL_DIR"; do
@@ -67,6 +67,8 @@ for D in "$WX_WIDGETS_BUILD_DIR" "$WX_WIDGETS_INSTALL_DIR"; do
     fi
 done
 
+# List of configure options was taken from
+# https://github.com/wxHaskell/wxHaskell/blob/master/install.txt
 if [ ! -e "$WX_WIDGETS_BUILD_DIR/guard-configure" ]; then
     (
         cd "$WX_WIDGETS_BUILD_DIR"
