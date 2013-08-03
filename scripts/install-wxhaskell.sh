@@ -5,6 +5,13 @@
 # Tested with wxHaskell version 0.90.1.0 commit
 # 03950cac597c5f99442281f46e57e32e61bea328.
 #
+# On Debian/Ubuntu install following:
+#
+#   $ apt-get install haskell-platform c2hs
+#   $ apt-get install build-essential
+#   $ apt-get install libglu-dev libgtk2.0-dev
+#
+#
 # Copyright (c) 2013, Peter Trsko <peter.trsko@gmail.com>
 #
 # All rights reserved.
