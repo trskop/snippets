@@ -8,6 +8,7 @@
 # On Debian/Ubuntu install following:
 #
 #   $ apt-get install haskell-platform c2hs
+#   $ apt-get install hscolour # Required for: cabal haddock --hyperlink-source
 #   $ apt-get install build-essential
 #   $ apt-get install libglu-dev libgtk2.0-dev
 #
