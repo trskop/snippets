@@ -7,8 +7,8 @@ Reusable snippets of code, simple reusable scripts, etc.
 Scripts
 =======
 
-Install Haskell Package in Sandbox
-----------------------------------
+Install Haskell Package in a Sandbox
+------------------------------------
 
 Script for sandboxed installation of Haskell packages. It's implemented as a
 wrapper for [*cabal-install*][cabal-install] or [*cabal-dev*][cabal-dev]
@@ -46,13 +46,10 @@ for full license text.
 
 [cabal-dev]:
   http://hackage.haskell.org/package/cabal-dev
-  "HackageDB: cabal-dev is a tool for managing development builds of Haskell
-  projects."
+  "HackageDB: cabal-dev is a tool for managing development builds of Haskell projects."
 [cabal-install]:
   http://www.haskell.org/haskellwiki/Cabal-Install
-  "HaskellWiki: Command-line tool that automates fetching, configuration,
-  compilation and installation of Haskell libraries and programs."
+  "HaskellWiki: Command-line tool that automates fetching, configuration, compilation and installation of Haskell libraries and programs."
 [ThreadScope]:
   http://www.haskell.org/haskellwiki/ThreadScope
-  "ThreadScope is a tool for performance profiling of parallel Haskell
-  programs."
+  "ThreadScope is a tool for performance profiling of parallel Haskell programs."
