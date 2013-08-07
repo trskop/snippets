@@ -31,10 +31,13 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+set -e
+
 DEFAULT_WORKING_DIR='.'
 DEFAULT_SANDBOX_DIR='sandbox' # Relative to DEFAULT_WORKING_DIR
 
-printHelp() {
+printHelp()
+{
     cat << EOF
 Usage:
   ${0##*/} [-C|-c] [-w WORKING_DIR] [SANDBOX_DIR] [-- CABAL_OPTIONS]
@@ -59,6 +62,23 @@ Options:
 
   Default value is ".".
 
+-p, --modify-path
+  Modify \$PATH environment variable to include \$INSTALL_DIR/bin as a first
+  component before invoking cabal-install or cabal-dev. However this is not
+  done if directory \$INSTALL_DIR/bin doesn't exist. See also --preserve-path
+  and --create-bin-dir options.
+
+  Enabled by default.
+
+-P, --preserve-path
+  Don't modify \$PATH environment variable before invoking cabal-install or
+  cabal-dev. See also --modify-path option.
+
+-d, --create-bin-dir
+  Create \$INSTALL_DIR/bin if it doesn't exist prior to invoking cabal-install
+  or cabal-dev. If --modify-path is also enabled (default behaviour) then
+  \$PATH environment variable will be adapted also.
+
 -h, --help
   Print this help and exit.
 
@@ -76,7 +96,8 @@ CABAL_OPTIONS
 EOF
 }
 
-error() {
+error()
+{
     local RC=$1; shift
 
     echo "ERROR:" "$@" 1>&2
@@ -87,11 +108,13 @@ error() {
     exit $RC
 }
 
-isCommandAvailable() {
+isCommandAvailable()
+{
     which "$1" 2>&1 > /dev/null
 }
 
-isImplAvailable() {
+isImplAvailable()
+{
     local CMD=''
 
     case "$1" in
@@ -102,7 +125,8 @@ isImplAvailable() {
     isCommandAvailable "$CMD"
 }
 
-getImpl() {
+getImpl()
+{
     if [ -z "$1" ]; then
         for I in 'cabal-dev' 'cabal-install'; do
             if isImplAvailable "$I"; then
@@ -118,15 +142,37 @@ getImpl() {
     return 1
 }
 
+# Convert relative path in to absolute.
 canonicalizePath()
 {
     readlink -f "$1"
 }
 
-cabalInstallMain() {
+# Cabal-install or cabal-dev won't have "$INSTALL_DIR/bin" in their path by
+# default. When installing more then one package in to the same sandbox it is
+# sometimes useful that the tools installed in previously are available to the
+# package being currently installed.
+cabalPath()
+{
+    local MODIFY_PATH="$1"
+    local SANDBOX_BIN_DIR="$2"
+    local CABAL_USE_PATH="$PATH"
+
+    if [ $MODIFY_PATH -eq 1 ] && [ -d "$SANDBOX_BIN_DIR" ]; then
+        CABAL_USE_PATH="$SANDBOX_BIN_DIR:$CABAL_USE_PATH"
+    fi
+
+    echo "$CABAL_USE_PATH"
+}
+
+cabalInstallMain()
+{
     local WD="$1"; shift
     local INSTALL_DIR="$1"; shift
+    local MODIFY_PATH="$1"; shift
+    local CREATE_BIN_DIR="$1"; shift
     local PACKAGES_CONF=''
+    local SANDBOX_BIN_DIR=''
 
     for CMD in 'ghc' 'ghc-pkg'; do
         if ! isCommandAvailable "$CMD"; then
@@ -135,35 +181,72 @@ cabalInstallMain() {
         fi
     done
 
-    mkdir "$INSTALL_DIR"
+    # Prepare installation directory structure if some components doesn't
+    # exist.
+    if [ ! -d "$INSTALL_DIR" ]; then
+        mkdir -p "$INSTALL_DIR"
+    fi
     INSTALL_DIR="`canonicalizePath "$INSTALL_DIR"`"
+    SANDBOX_BIN_DIR="$INSTALL_DIR/bin"
+
+    # See option `--create-bin-dir'.
+    if [ $CREATE_BIN_DIR -eq 1 ] && [ ! -d "$SANDBOX_BIN_DIR" ]; then
+        mkdir "$SANDBOX_BIN_DIR"
+    fi
+
+    # If package DB doesn't exist empty one will be created.
     PACKAGES_CONF="$INSTALL_DIR/packages-`ghc --numeric-version`.conf"
-    ghc-pkg init "$PACKAGES_CONF"
+    if [ ! -d "$PACKAGES_CONF" ]; then
+        ghc-pkg init "$PACKAGES_CONF"
+    fi
+
     (
         cd "$WD"
-        cabal install \
-            --prefix="$INSTALL_DIR" \
-            --package-db="$PACKAGES_CONF" \
-            "$@"
+        env PATH="`cabalPath "$MODIFY_PATH" "$SANDBOX_BIN_DIR"`" \
+            cabal install \
+                --prefix="$INSTALL_DIR" \
+                --package-db="$PACKAGES_CONF" \
+                "$@"
     )
 }
 
-cabalDevMain() {
+cabalDevMain()
+{
     local WD="$1"; shift
     local INSTALL_DIR="$1"; shift
+    local MODIFY_PATH="$1"; shift
+    local CREATE_BIN_DIR="$1"; shift
+    local SANDBOX_BIN_DIR=''
+
+    # Prepare installation directory structure if some components doesn't
+    # exist. This step is not normally required, but we need it for path
+    # canonicalization to work.
+    if [ ! -d "$INSTALL_DIR" ]; then
+        mkdir -p "$INSTALL_DIR"
+    fi
+    INSTALL_DIR="`canonicalizePath "$INSTALL_DIR"`"
+    SANDBOX_BIN_DIR="$INSTALL_DIR/bin"
+
+    # See option `--create-bin-dir'.
+    if [ $CREATE_BIN_DIR -eq 1 ] && [ ! -d "$SANDBOX_BIN_DIR" ]; then
+        mkdir "$SANDBOX_BIN_DIR"
+    fi
 
     (
         cd "$WD"
-        cabal-dev install \
-            --sandbox="$INSTALL_DIR" \
-            "$@"
+        env PATH="`cabalPath "$MODIFY_PATH" "$SANDBOX_BIN_DIR"`" \
+            cabal-dev install \
+                --sandbox="$INSTALL_DIR" \
+                "$@"
     )
 }
 
 # Main ########################################################################
 
-FORCE_IMPL=''
+CREATE_BIN_DIR=0
 END_OF_OPTIONS=0
+FORCE_IMPL=''
+MODIFY_PATH=1
 while [ $# -gt 0 -a $END_OF_OPTIONS -ne 1 ]; do
     case "$1" in
       '-C'|'--cabal-install')
@@ -179,6 +262,15 @@ while [ $# -gt 0 -a $END_OF_OPTIONS -ne 1 ]; do
         else
             WORKING_DIR="${1#--working-dir=}"
         fi
+        ;;
+      '-p'|'--modify-path')
+        MODIFY_PATH=1
+        ;;
+      '-P'|'--preserve-path')
+        MODIFY_PATH=0
+        ;;
+      '-d'|'--create-bin-dir')
+        CREATE_BIN_DIR=1
         ;;
       '-h'|'--help'|'-help')
         printHelp
@@ -218,10 +310,12 @@ IMPL="`getImpl "$FORCE_IMPL"`" || {
 
 case "$IMPL" in
   'cabal-install')
-    cabalInstallMain "$WORKING_DIR" "$SANDBOX_DIR" "$@"
+    cabalInstallMain \
+        "$WORKING_DIR" "$SANDBOX_DIR" "$MODIFY_PATH" "$CREATE_BIN_DIR" "$@"
     ;;
   'cabal-dev')
-    cabalDevMain "$WORKING_DIR" "$SANDBOX_DIR" "$@"
+    cabalDevMain \
+        "$WORKING_DIR" "$SANDBOX_DIR" "$MODIFY_PATH" "$CREATE_BIN_DIR" "$@"
     ;;
   *)
     error 2 'Unknown installation tool' "'$IMPL'," \
