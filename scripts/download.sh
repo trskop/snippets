@@ -38,10 +38,21 @@
 function usage()
 {
     cat << EOF
+Simplified download wrapper script for wget/curl.
+    
 Usage:
-  ${0##*/} URL [OUT_FILE]
-  ${0##*/} {--config=FILE|-c FILE}
+
+  ${0##*/} [OPTIONS] URL [OUT_FILE]
+  ${0##*/} [OPTIONS] {--config=FILE|-c FILE}
   ${0##*/} {-h|--help}
+
+Options:
+
+  --no-checksum
+
+    When downloading file based on specified URL then don't compute checksums.
+    In case of download based on configuration file, with checksums specified,
+    don't check them after successful download.
 EOF
 }
 
@@ -103,11 +114,18 @@ function mkChecksum()
 
     if isCommandAvailable "$COMMAND"; then
         "$COMMAND" "$OUT_FILE" \
-        | sed 's/^\([^ ]\+\) .*$/'"$VARIABLE_NAME"'=\1/'
+        | sed 's/^\([^ ]\+\) .*$/'"${VARIABLE_NAME}='\1'/"
     else
         warning "%s: Command not found.\n  Can't create %s sum." \
             "$COMMAND" "$HASH"
     fi
+}
+
+function logDateAndTime()
+{
+    local OUT_FILE="$1"
+
+    echo "TIMESTAMP='`date --rfc-3339='seconds'`'" >> "$OUT_FILE"
 }
 
 function checkChecksum()
@@ -151,6 +169,7 @@ function checkChecksum()
 
 function normalDownload()
 {
+    local DO_CHECKSUM="$1"; shift
     local URL="$1"
     local OUT_FILE=''
     local DWL_FILE=''
@@ -173,13 +192,18 @@ function normalDownload()
 
     download "$URL" "$OUT_FILE"
 
-    for HASH in 'MD5' 'SHA1' 'SHA256'; do
-        mkChecksum "$HASH" "$OUT_FILE" >> "$DWL_FILE"
-    done
+    if [ "$DO_CHECKSUM" -gt 0 ]; then
+        for HASH in 'MD5' 'SHA1' 'SHA256'; do
+            mkChecksum "$HASH" "$OUT_FILE" >> "$DWL_FILE"
+        done
+    fi
+
+    logDateAndTime "$DWL_FILE"
 }
 
 function configDownload()
 {
+    local DO_CHECKSUM="$1"; shift
     local DWL_FILE="$1"
 
     local URL=''
@@ -200,12 +224,12 @@ function configDownload()
 
     download "$URL" "$OUT_FILE"
 
-    checkChecksum 'SHA1'   "$SHA1SUM"   "$OUT_FILE"
-    checkChecksum 'SHA224' "$SHA224SUM" "$OUT_FILE"
-    checkChecksum 'SHA256' "$SHA256SUM" "$OUT_FILE"
-    checkChecksum 'SHA384' "$SHA384SUM" "$OUT_FILE"
-    checkChecksum 'SHA512' "$SHA512SUM" "$OUT_FILE"
-    checkChecksum 'MD5'    "$MD5SUM"    "$OUT_FILE"
+    if [ "$DO_CHECKSUM" -gt 0 ]; then
+        for HASH in 'SHA1' 'SHA224' 'SHA256' 'SHA384' 'SHA512' 'MD5'; do
+            eval "local HASH_VALUE=\"\${${HASH}SUM}\""
+            checkChecksum "$HASH" "$HASH_VALUE" "$OUT_FILE"
+        done
+    fi
 }
 
 # Main ########################################################################
@@ -215,23 +239,27 @@ if [ $# -eq 0 -o $# -gt 2 ]; then
     exit 1
 fi
 
+DO_CHECKSUM=1
 case "$1" in
   '-h'|'--help')
      usage
      exit 0
+     ;;
+  '--no-checksum')
+     DO_CHECKSUM=0
      ;;
   '-c')
     if [ $# -ne 2 ]; then
         usage 1>&2
         exit 1
     fi
-    configDownload "$2"
+    configDownload "$DO_CHECKSUM" "$2"
     ;;
   '--config='*)
-    configDownload "${1#--config=}"
+    configDownload "$DO_CHECKSUM" "${1#--config=}"
     ;;
   *)
-    normalDownload "$@"
+    normalDownload "$DO_CHECKSUM" "$@"
     ;;
 esac
 
