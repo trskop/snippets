@@ -36,6 +36,13 @@ $ install-in-sandbox.sh /opt/ThreadScope/0.2.2 -- gtk2hs-buildtools
 $ install-in-sandbox.sh /opt/ThreadScope/0.2.2 -- threadscope-0.2.2
 ```
 
+Install [*ghc-gc-tune*][ghc-gc-tune] on Debian Linux:
+
+```
+$ apt-get install gnuplot
+$ install-in-sandbox.sh /opt/ghc-gc-tune/0.3 -- ghc-gc-tune-0.3
+```
+
 
 License
 =======
@@ -50,6 +57,9 @@ for full license text.
 [cabal-install]:
   http://www.haskell.org/haskellwiki/Cabal-Install
   "HaskellWiki: Command-line tool that automates fetching, configuration, compilation and installation of Haskell libraries and programs."
+[ghc-gc-tune]:
+  https://donsbot.wordpress.com/2010/07/05/ghc-gc-tune-tuning-haskell-gc-settings-for-fun-and-profit/
+  "Don Stewart's Blog: ghc-gc-tune: Tuning Haskell GC settings for fun and profit"
 [ThreadScope]:
   http://www.haskell.org/haskellwiki/ThreadScope
   "ThreadScope is a tool for performance profiling of parallel Haskell programs."
