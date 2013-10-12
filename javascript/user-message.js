@@ -31,11 +31,25 @@
 
 
 ;(function(namespace, window, $, undefined) {
-  function get(x)
+  // These variables allow better minification:
+  var CLEAR = "clear";
+  var DEFAULT_CLASS = "defaultClass";
+  var FACTORY = "factory";
+  var IS_KNOWN_MESSAGE_CLASS = "isKnownMessageClass";
+  var SHOW = "show";
+
+  function getter(k, v)
   {
-    return function() {
-      return x;
-    };
+    var defGetter = this.__defineGetter__;
+
+    if (defGetter)
+    {
+      defGetter(k, function() {return v;});
+    }
+    else
+    {
+      this[k] = v;
+    }
   }
 
   function constructUserMessage(cls)
@@ -52,7 +66,7 @@
 
     // Variables that needs to be initialized before usage.
     var _classValues = {};  // Map with key-value reversed.
-    var _classesStr = '';
+    var _classesStr = '';   // Message classes separated by white space.
 
     // Populate _classValues and generate _classesStr.
     for (var key in _class)
@@ -60,11 +74,7 @@
       var val = _class[key];
 
       _classValues[val] = key;
-      if (_classesStr)
-      {
-        _classesStr += ' ';
-      }
-      _classesStr += val;
+      _classesStr += _classesStr ? ' ' + val : val;
     }
 
     function _isKnownMessageClass(msgCls)
@@ -73,10 +83,10 @@
     }
 
     /**
-     * function _implementation(selector: string,
-     *     defaultMessageClass = UserMessage.INFO: string,
-     *     [messageClass: string],
-     *     message: string | object | array)
+     * function _implementation(selector: string
+     *   [, defaultMessageClass: string = UserMessage.INFO
+     *   [[, messageClass: string]
+     *   , message: string | object | array]): undefined
      */
     function _implementation(selector, defaultMessageClass, messageClass,
       message)
@@ -136,28 +146,24 @@
       $(selector).removeClass(_classesStr).addClass(messageClass).text(message);
     }
 
+    /**
+     * function _factory(selector: string
+     *   [, defaultMessageClass: string]): undefined
+     */
     function _factory(selector, defaultMessageClass)
     {
+      // function([[messageClass: string, ]
+      //   message: string | object | array]): undefined
+
       return function (messageClass, message) {
-        // function([messageClass: string], message: string | object): undefined
-        //
-        // messageClass
-        //
-        //   CSS class of the message and it should be one of:
-        //   UserMessage.ERROR
-        //   UserMessage.WARNING
-        //   UserMessage.OK
-        //   UserMessage.INFO
-        //   UserMessage.NONE
-        //
-        // message
-        //
-        //   Message to be shown if message class is different then
-        //   UserMessage.NONE, otherwise it's ignored.
         _implementation(selector, defaultMessageClass, messageClass, message);
       };
     }
 
+    /**
+     * function _clear(selector: string
+     *   [, messageClass: string = UserMessage.NONE]): undefined
+     */
     function _clear(selector, messageClass)
     {
       if (messageClass === undefined
@@ -175,51 +181,73 @@
       _implementation(selector, undefined, messageClass, message);
     };
 
-    if (cls.__defineGetter__)
+    for (var msgCls in _class)
     {
-      for (var msgCls in _class)
-      {
-        cls.__defineGetter__(msgCls, get(_class[msgCls]));
-      }
-      cls.__defineGetter__('defaultClass', get(_defaultClass));
-      cls.__defineGetter__('isKnownMessageClass', get(_isKnownMessageClass));
-      cls.__defineGetter__('factory', get(_factory));
-      cls.__defineGetter__('clear', get(_clear));
-      cls.__defineGetter__('show', get(_show));
+      getter(msgCls, get(_class[msgCls]));
     }
-    else
-    {
-      for (var msgCls in _class)
-      {
-        cls[msgCls] = _class[msgcls];
-      }
-      cls.defaultClass = _defaultClass;
-      cls.isKnownMessageClass = _isKnownMessageClass;
-      cls.factory = _factory;
-      cls.clear = _clear;
-      cls.show = _show;
-    }
+    getter(DEFAULT_CLASS, get(_defaultClass));
+    getter(IS_KNOWN_MESSAGE_CLASS, get(_isKnownMessageClass));
+    getter(FACTORY, get(_factory));
+    getter(CLEAR, get(_clear));
+    getter(SHOW, get(_show));
 
     return cls;
   }
 
-  function UserMessage(selector, defaultMessageClass, initialMessageClass)
+  /**
+   * UserMessage.ERROR: string
+   * UserMessage.WARNING: string
+   * UserMessage.OK: string
+   * UserMessage.INFO: string
+   * UserMessage.NONE: string
+   * UserMessage.defaultClass: string
+   *
+   * var userMessage = new trskop.UserMessage(selector: string
+   *   [, defaultMessageClass: string = UserMessage.INFO]);
+   *
+   * userMessage.clear([messageClass: string = trskop.UserMessage.NONE]):
+   *   undefined
+   *
+   * userMessage.show([[messageClass: string = trskop.UserMessage.INFO, ]
+   *   message: string | object | array]): undefined
+   *
+   * userMessage.defaultClass: string
+   *
+   * selector
+   *
+   *   The jQuery (CSS) selector of element that should be handled by instance
+   *   of this class.
+   *
+   * messageClass, defaultMessageClass
+   *
+   *   CSS class of the message and it should be one of:
+   *
+   *   * UserMessage.ERROR
+   *   * UserMessage.WARNING
+   *   * UserMessage.OK
+   *   * UserMessage.INFO (default for messages)
+   *   * UserMessage.NONE (default for clear())
+   *
+   * message
+   *
+   *   Message to be shown if message class is different then
+   *   UserMessage.NONE, otherwise it's ignored.
+   *
+   * Calling show() (without arguments) behaves the same way as calling clear()
+   * (whitout arguments).
+   */
+  function UserMessage(selector, defaultMessageClass)
   {
+    var _defaultClass = defaultMessageClass || UserMessage.defaultClass;
     var _show = UserMessage.factory(selector, defaultMessageClass);
-    var _clear = function() {
-      UserMessage.clear(selector);
+    var _clear = function(messageClass) {
+      // function([messageClass: string = UserMessage.NONE]): undefined
+      UserMessage.clear(selector, messageClass);
     };
 
-    if (this.__defineGetter__)
-    {
-      this.__defineGetter__('show', get(_show));
-      this.__defineGetter__('clear', get(_clear));
-    }
-    else
-    {
-      this.show = _show;
-      this.clear = _clear;
-    }
+    getter(CLEAR, get(_clear));
+    getter(DEFAULT_CLASS, get(_defaultClass));
+    getter(SHOW, get(_show));
   }
 
   namespace.UserMessage = constructUserMessage(UserMessage);
