@@ -38,17 +38,17 @@
   var IS_KNOWN_MESSAGE_CLASS = "isKnownMessageClass";
   var SHOW = "show";
 
-  function getter(k, v)
+  function getter(t, k, v)
   {
-    var defGetter = this.__defineGetter__;
+    var defGetter = t.__defineGetter__;
 
     if (defGetter)
     {
-      defGetter(k, function() {return v;});
+      defGetter.call(t, k, function() {return v;});
     }
     else
     {
-      this[k] = v;
+      t[k] = v;
     }
   }
 
@@ -183,13 +183,13 @@
 
     for (var msgCls in _class)
     {
-      getter(msgCls, get(_class[msgCls]));
+      getter(cls, msgCls, _class[msgCls]);
     }
-    getter(DEFAULT_CLASS, get(_defaultClass));
-    getter(IS_KNOWN_MESSAGE_CLASS, get(_isKnownMessageClass));
-    getter(FACTORY, get(_factory));
-    getter(CLEAR, get(_clear));
-    getter(SHOW, get(_show));
+    getter(cls, DEFAULT_CLASS, _defaultClass);
+    getter(cls, IS_KNOWN_MESSAGE_CLASS, _isKnownMessageClass);
+    getter(cls, FACTORY, _factory);
+    getter(cls, CLEAR, _clear);
+    getter(cls, SHOW, _show);
 
     return cls;
   }
@@ -245,9 +245,9 @@
       UserMessage.clear(selector, messageClass);
     };
 
-    getter(CLEAR, get(_clear));
-    getter(DEFAULT_CLASS, get(_defaultClass));
-    getter(SHOW, get(_show));
+    getter(this, CLEAR, _clear);
+    getter(this, DEFAULT_CLASS, _defaultClass);
+    getter(this, SHOW, _show);
   }
 
   namespace.UserMessage = constructUserMessage(UserMessage);
