@@ -38,23 +38,39 @@
   var IS_KNOWN_MESSAGE_CLASS = "isKnownMessageClass";
   var SHOW = "show";
 
-  function getter(t, k, v)
+  /**
+   * Construct and define a getter for specified object. This lowers code
+   * redundancy and as a side effect we get smaller minimized code.
+   */
+  function defineGetter(obj, key, val)
   {
-    var defGetter = t.__defineGetter__;
+    var defGetter = obj.__defineGetter__;
 
     if (defGetter)
     {
-      defGetter.call(t, k, function() {return v;});
+      defGetter.call(obj, key, function() {return val;});
     }
     else
     {
-      t[k] = v;
+      obj[key] = val;
     }
   }
 
+  /**
+   * function constructUserMessage(cls: Function): Function
+   *
+   * Construct UserMessage-like class for specified cls. The same class is
+   * returned for easier API.
+   */
   function constructUserMessage(cls)
   {
-    // Constants.
+    // Prototype for instances of cls. Attributes and functions to be defined
+    // for both class and instance has to be added to this object too.
+    var _prototype = {};
+    cls.prototype = _prototype;
+
+    // Message classes. Using definition like this allows us to iterate through
+    // object and get symbolic name as well as value.
     var _class =
       { ERROR: 'error'
       , WARNING: 'warning'
@@ -62,11 +78,26 @@
       , INFO: 'info'
       , NONE: 'none'
       };
-    var _defaultClass = _class.INFO;
 
-    // Variables that needs to be initialized before usage.
-    var _classValues = {};  // Map with key-value reversed.
-    var _classesStr = '';   // Message classes separated by white space.
+    // Export message classes.
+    for (var msgCls in _class)
+    {
+      var value = _class[msgCls];
+
+      defineGetter(cls, msgCls, value);
+      defineGetter(_prototype, msgCls, value);
+    }
+
+    // Default message CSS class to be used if one is not specified.
+    var _defaultClass = _class.INFO;
+    defineGetter(cls, DEFAULT_CLASS, _defaultClass);
+
+    // Map with message class values and keys reversed. It's used for fast
+    // existence checks.
+    var _classValues = {};
+
+    // Message classes separated by white space by jQuery's .removeClass().
+    var _classesStr = '';
 
     // Populate _classValues and generate _classesStr.
     for (var key in _class)
@@ -77,10 +108,15 @@
       _classesStr += _classesStr ? ' ' + val : val;
     }
 
+    /**
+     * function _isKnownMessageClass(msgCls: string): bool
+     */
     function _isKnownMessageClass(msgCls)
     {
       return _classValues.hasOwnProperty(msgCls);
     }
+    defineGetter(cls, IS_KNOWN_MESSAGE_CLASS, _isKnownMessageClass);
+    defineGetter(_prototype, IS_KNOWN_MESSAGE_CLASS, _isKnownMessageClass);
 
     /**
      * function _implementation(selector: string
@@ -147,20 +183,6 @@
     }
 
     /**
-     * function _factory(selector: string
-     *   [, defaultMessageClass: string]): undefined
-     */
-    function _factory(selector, defaultMessageClass)
-    {
-      // function([[messageClass: string, ]
-      //   message: string | object | array]): undefined
-
-      return function (messageClass, message) {
-        _implementation(selector, defaultMessageClass, messageClass, message);
-      };
-    }
-
-    /**
      * function _clear(selector: string
      *   [, messageClass: string = UserMessage.NONE]): undefined
      */
@@ -173,23 +195,44 @@
         messageClass = _class.NONE;
       }
 
-      $(selector).removeClass(_classesStr).addClass(messageClass).text("");
+      _implementation(selector, _class.NONE, messageClass, "");
+      //$(selector).removeClass(_classesStr).addClass(messageClass).text("");
     }
+    defineGetter(cls, CLEAR, _clear);
 
+    /**
+     * function _factory(selector: string
+     *   [, defaultMessageClass: string]): undefined
+     */
+    function _factory(selector, defaultMessageClass)
+    {
+      var result = {};
+
+      // function show([[messageClass: string, ]
+      //   message: string | object | array]): undefined
+      result[SHOW] = function(messageClass, message) {
+        _implementation(selector, defaultMessageClass, messageClass, message);
+      };
+
+      // function clear([messageClass: string = UserMessage.NONE]): undefined
+      result[CLEAR] = function(messageClass) {
+        _clear(selector, messageClass);
+      };
+
+      return result;
+    }
+    defineGetter(cls, FACTORY, _factory);
+
+    /**
+     * function _show(selector: string
+     *   [, [messageClass: string = UserMessage.INFO, ]
+     *   message: string | object | array]): undefined
+     */
     function _show(selector, messageClass, message)
     {
       _implementation(selector, undefined, messageClass, message);
     };
-
-    for (var msgCls in _class)
-    {
-      getter(cls, msgCls, _class[msgCls]);
-    }
-    getter(cls, DEFAULT_CLASS, _defaultClass);
-    getter(cls, IS_KNOWN_MESSAGE_CLASS, _isKnownMessageClass);
-    getter(cls, FACTORY, _factory);
-    getter(cls, CLEAR, _clear);
-    getter(cls, SHOW, _show);
+    defineGetter(cls, SHOW, _show);
 
     return cls;
   }
@@ -239,17 +282,16 @@
   function UserMessage(selector, defaultMessageClass)
   {
     var _defaultClass = defaultMessageClass || UserMessage.defaultClass;
-    var _show = UserMessage.factory(selector, defaultMessageClass);
-    var _clear = function(messageClass) {
-      // function([messageClass: string = UserMessage.NONE]): undefined
-      UserMessage.clear(selector, messageClass);
-    };
+    var _methods = UserMessage.factory(selector, defaultMessageClass);
 
-    getter(this, CLEAR, _clear);
-    getter(this, DEFAULT_CLASS, _defaultClass);
-    getter(this, SHOW, _show);
+    defineGetter(this, DEFAULT_CLASS, _defaultClass);
+    for (var method in _methods)
+    {
+      defineGetter(this, method, _methods[method]);
+    }
   }
 
+  // Construct UserMessage class and export it.
   namespace.UserMessage = constructUserMessage(UserMessage);
 })(window.trskop = window.trskop || {}, window, jQuery);
 
