@@ -53,23 +53,38 @@ Options:
     When downloading file based on specified URL then don't compute checksums.
     In case of download based on configuration file, with checksums specified,
     don't check them after successful download.
+
+  --no-checksum
+
+    When downloading file based on specified URL then don't compute checksums.
+    In case of download based on configuration file, with checksums specified,
+    don't check them after successful download.
+
+  -h, --help
+
+    Print this help information and exit.
 EOF
+}
+
+function message()
+{
+    local -r KIND="$1"; shift
+    local -r FORMAT="$1"; shift
+
+    printf "$KIND: $FORMAT\n" "$@" 1>&2
 }
 
 function error()
 {
-    local EXIT_CODE=$1; shift
-    local FORMAT=$1; shift
+    local -r EXIT_CODE=$1; shift
 
-    printf "Error: $FORMAT\n" "$@" 1>&2
+    message 'Error' "$@"
     exit $EXIT_CODE
 }
 
 function warning()
 {
-    local FORMAT="$1"; shift
-
-    printf "Warning: $FORMAT\n" "$@" 1>&2
+    message 'Warning' "$@"
 }
 
 function isCommandAvailable()
@@ -79,8 +94,8 @@ function isCommandAvailable()
 
 function download()
 {
-    local URL="$1"
-    local OUT_FILE="$2"
+    local -r URL="$1"; shift
+    local -r OUT_FILE="$1"; shift
 
     if isCommandAvailable 'wget'; then
         # [ -n "$OUT_FILE" ] && wget -O "$OUT_FILE" "$URL" || wget "$URL"
@@ -92,8 +107,8 @@ function download()
 
 function mkChecksum()
 {
-    local HASH="$1"
-    local OUT_FILE="$2"
+    local -r HASH="$1"; shift
+    local -r OUT_FILE="$1"; shift
     local COMMAND=''
     local VARIABLE_NAME=''
 
@@ -123,16 +138,17 @@ function mkChecksum()
 
 function logDateAndTime()
 {
-    local OUT_FILE="$1"
+    local -r OUT_FILE="$1"; shift
 
     echo "TIMESTAMP='`date --rfc-3339='seconds'`'" >> "$OUT_FILE"
 }
 
 function checkChecksum()
 {
-    local HASH="$1"
-    local CHECKSUM="$2"
-    local OUT_FILE="$3"
+    local -r HASH="$1"; shift
+    local -r CHECKSUM="$1"; shift
+    local -r OUT_FILE="$1"; shift
+    local COMMAND=''
 
     if [ -z "$CHECKSUM" ]; then
         return
@@ -169,8 +185,8 @@ function checkChecksum()
 
 function normalDownload()
 {
-    local DO_CHECKSUM="$1"; shift
-    local URL="$1"
+    local -r DO_CHECKSUM="$1"; shift
+    local -r URL="$1"; shift
     local OUT_FILE=''
     local DWL_FILE=''
 
@@ -203,8 +219,8 @@ function normalDownload()
 
 function configDownload()
 {
-    local DO_CHECKSUM="$1"; shift
-    local DWL_FILE="$1"
+    local -r DO_CHECKSUM="$1"; shift
+    local -r DWL_FILE="$1"; shift
 
     local URL=''
     local OUT_FILE=''
