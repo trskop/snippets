@@ -2,3 +2,7 @@
 .*
 !.gitignore
 *~
+
+# Local definitions
+
+javascript/*.min.js
