@@ -31,23 +31,32 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# TODO:
-#
-# * Check MD5/SHA checksum on (normal) download if provided on command line.
+set -e
 
 function usage()
 {
-    cat << EOF
+    local -r progName="${0##*/}"
+
+    local -r -i terminalWidth="$(tput cols || echo 80)"
+
+    fmt --width="$terminalWidth" << EOF
 Simplified download wrapper script for wget/curl.
     
 Usage:
 
-  ${0##*/} [OPTIONS] URL [OUT_FILE]
-  ${0##*/} [OPTIONS] {--config=FILE|-c FILE}
-  ${0##*/} {-h|--help}
+  ${progName} [OPTIONS] URL [OUT_FILE]
+
+  ${progName} [OPTIONS] {--config=FILE|-c FILE}
+
+  ${progName} {-h|--help}
 
 Options:
 
+  -c FILE, --config=FILE
+
+    Download file based on configuration FILE. It has to contain at least one
+    entry "URL=<url>".
+
   --no-checksum
 
     When downloading file based on specified URL then don't compute checksums.
@@ -59,6 +68,18 @@ Options:
     When downloading file based on specified URL then don't compute checksums.
     In case of download based on configuration file, with checksums specified,
     don't check them after successful download.
+
+  --sha1=CHECKSUM, --sha256=CHECKSUM, --md5=CHECKSUM
+
+    Check if downloaded file matches CHECKSUM when downloaded. These options
+    are ignored when downloading file based on configuration file where these
+    can be entered.
+
+  --http-proxy=[http://]HOST[:PORT]
+
+    Use specified HTTP proxy server by exporting http_proxy environment
+    variable for wget/curl. Warning: this script doesn't check if HOST and PORT
+    are syntactically valid values.
 
   -h, --help
 
@@ -68,18 +89,18 @@ EOF
 
 function message()
 {
-    local -r KIND="$1"; shift
-    local -r FORMAT="$1"; shift
+    local -r kind="$1"; shift
+    local -r format="$1"; shift
 
-    printf "$KIND: $FORMAT\n" "$@" 1>&2
+    printf "$kind: $format\n" "$@" 1>&2
 }
 
 function error()
 {
-    local -r EXIT_CODE=$1; shift
+    local -r exitCode=$1; shift
 
     message 'Error' "$@"
-    exit $EXIT_CODE
+    exit $exitCode
 }
 
 function warning()
@@ -89,142 +110,162 @@ function warning()
 
 function isCommandAvailable()
 {
-    which "$1" 1>&2 > /dev/null
+    local -r command="$1"; shift
+
+    which "$command" 1>&2 > /dev/null
 }
 
 function download()
 {
-    local -r URL="$1"; shift
-    local -r OUT_FILE="$1"; shift
+    local -r url="$1"; shift
+    local -r outFile="$1"; shift
 
     if isCommandAvailable 'wget'; then
-        # [ -n "$OUT_FILE" ] && wget -O "$OUT_FILE" "$URL" || wget "$URL"
-        wget -O "$OUT_FILE" "$URL"
+        # [ -n "$outFile" ] && wget -O "$outFile" "$url" || wget "$url"
+        wget -O "$outFile" "$url"
     elif isCommandAvailable 'curl'; then
-        curl "$URL" > "$OUT_FILE"
+        curl "$url" > "$outFile"
     fi
 }
 
 function mkChecksum()
 {
-    local -r HASH="$1"; shift
-    local -r OUT_FILE="$1"; shift
-    local COMMAND=''
-    local VARIABLE_NAME=''
+    local -r hash="$1"; shift
+    local -r file="$1"; shift
+    local command=''
+    local variableName=''
 
-    case "$HASH" in
-      MD5)
-        VARIABLE_NAME='MD5SUM'
-        COMMAND='md5sum'
+    case "$hash" in
+      'MD5')
+        variableName='MD5SUM'
+        command='md5sum'
         ;;
-      SHA1)
-        VARIABLE_NAME='SHA1SUM'
-        COMMAND='sha1sum'
+      'SHA1')
+        variableName='SHA1SUM'
+        command='sha1sum'
         ;;
-      SHA256)
-        VARIABLE_NAME='SHA256SUM'
-        COMMAND='sha256sum'
+      'SHA256')
+        variableName='SHA256SUM'
+        command='sha256sum'
+        ;;
+      *)
+        warning '%s: Unknown hash algorithm.' "$hash"
+        return
         ;;
     esac
 
-    if isCommandAvailable "$COMMAND"; then
-        "$COMMAND" "$OUT_FILE" \
-        | sed 's/^\([^ ]\+\) .*$/'"${VARIABLE_NAME}='\1'/"
+    if isCommandAvailable "$command"; then
+        "$command" "$file" \
+        | sed 's/^\([^ ]\+\) .*$/'"${variableName}='\1'/"
     else
         warning "%s: Command not found.\n  Can't create %s sum." \
-            "$COMMAND" "$HASH"
+            "$command" "$hash"
     fi
 }
 
 function logDateAndTime()
 {
-    local -r OUT_FILE="$1"; shift
+    local -r file="$1"; shift
 
-    echo "TIMESTAMP='`date --rfc-3339='seconds'`'" >> "$OUT_FILE"
+    echo "TIMESTAMP='$(date --rfc-3339='seconds')'" >> "$file"
 }
 
 function checkChecksum()
 {
-    local -r HASH="$1"; shift
-    local -r CHECKSUM="$1"; shift
-    local -r OUT_FILE="$1"; shift
-    local COMMAND=''
+    local -r hash="$1"; shift
+    local -r checksum="$1"; shift
+    local -r file="$1"; shift
+    local command=''
 
-    if [ -z "$CHECKSUM" ]; then
+    if [ -z "$checksum" ]; then
         return
     fi
 
-    case "$HASH" in
-      MD5)
-        COMMAND='md5sum'
+    case "$hash" in
+      'MD5')
+        command='md5sum'
         ;;
-      SHA1)
-        COMMAND='sha1sum'
+      'SHA1')
+        command='sha1sum'
         ;;
-      SHA224)
-        COMMAND='sha224sum'
+      'SHA224')
+        command='sha224sum'
         ;;
-      SHA256)
-        COMMAND='sha256sum'
+      'SHA256')
+        command='sha256sum'
         ;;
-      SHA384)
-        COMMAND='sha384sum'
+      'SHA384')
+        command='sha384sum'
         ;;
-      SHA512)
-        COMMAND='sha512sum'
+      'SHA512')
+        command='sha512sum'
         ;;
     esac
 
-    if isCommandAvailable "$COMMAND"; then
-        echo "$CHECKSUM  $OUT_FILE" | "$COMMAND" --check -
+    if isCommandAvailable "$command"; then
+        "$command" --check - <<< "$checksum  $file"
     else
         warning "%s: Command not found.\n  Can't check %s sum." \
-            "$COMMAND" "$HASH"
+            "$command" "$hash"
     fi
 }
 
 function normalDownload()
 {
-    local -r DO_CHECKSUM="$1"; shift
-    local -r URL="$1"; shift
-    local OUT_FILE=''
-    local DWL_FILE=''
+    local -r -i doChecksum="$1"; shift
+    local -r sha1="$1"; shift
+    local -r sha256="$1"; shift
+    local -r md5="$1"; shift
+    local -r url="$1"; shift
+    local -r outFile="${1:-${url##*/}}"; shift
 
-    if [ $# -eq 2 ]; then
-        OUT_FILE="$2"
-    else
-        OUT_FILE="${URL##*/}"
+    local -r -a knownHashes=('MD5' 'SHA1' 'SHA256')
+    local dwlFile=''
+    local checksum=''
+
+    dwlFile="${outFile}.download"
+    if [ -e "$outFile" ]; then
+        error 1 '%s: File already exists.' "$outFile"
+    elif [ -e "$dwlFile" ]; then
+        error 1 '%s: File already exists.' "$dwlFile"
     fi
 
-    DWL_FILE="$OUT_FILE.download"
-    if [ -e "$OUT_FILE" ]; then
-        error 1 '%s: File already exists.' "$OUT_FILE"
-    elif [ -e "$DWL_FILE" ]; then
-        error 1 '%s: File already exists.' "$DWL_FILE"
-    fi
+    echo URL="'$url'" > "$dwlFile"
+    echo OUT_FILE="'$outFile'" >> "$dwlFile"
 
-    echo URL="'$URL'" > "$DWL_FILE"
-    echo OUT_FILE="'$OUT_FILE'" >> "$DWL_FILE"
+    download "$url" "$outFile"
 
-    download "$URL" "$OUT_FILE"
+    for hash in "${knownHashes[@]}"; do
+        case "$hash" in
+            'MD5') checksum="$md5";;
+            'SHA1') checksum="$sha1";;
+            'SHA256') checksum="$sha256";;
+            *) checksum='';;
+        esac
 
-    if [ "$DO_CHECKSUM" -gt 0 ]; then
-        for HASH in 'MD5' 'SHA1' 'SHA256'; do
-            mkChecksum "$HASH" "$OUT_FILE" >> "$DWL_FILE"
+        if [[ -n "$checksum" ]]; then
+            checkChecksum "$hash" "$checksum" "$outFile"
+        fi
+    done
+
+    if (( doChecksum > 0 )); then
+        for hash in "${knownHashes[@]}"; do
+            mkChecksum "$hash" "$outFile" >> "$dwlFile"
         done
     fi
 
-    logDateAndTime "$DWL_FILE"
+    logDateAndTime "$dwlFile"
 }
 
 function configDownload()
 {
-    local -r DO_CHECKSUM="$1"; shift
-    local -r DWL_FILE="$1"; shift
+    local -r doChecksum="$1"; shift
+    local -r dwlFile="$1"; shift
+
+    local -r knownHashes=('SHA1' 'SHA224' 'SHA256' 'SHA384' 'SHA512' 'MD5')
 
     local URL=''
     local OUT_FILE=''
-
     local MD5SUM=''
     local SHA1SUM=''
     local SHA224SUM=''
@@ -232,7 +273,11 @@ function configDownload()
     local SHA384SUM=''
     local SHA512SUM=''
 
-    source "$DWL_FILE"
+    if [[ -f "$dwlFile" ]] && [[ -r "$dwlFile" ]]; then
+        source "$dwlFile"
+    else
+        : # TODO
+    fi
 
     if [ -z "$OUT_FILE" ]; then
         OUT_FILE="${URL##*/}"
@@ -240,43 +285,90 @@ function configDownload()
 
     download "$URL" "$OUT_FILE"
 
-    if [ "$DO_CHECKSUM" -gt 0 ]; then
-        for HASH in 'SHA1' 'SHA224' 'SHA256' 'SHA384' 'SHA512' 'MD5'; do
-            eval "local HASH_VALUE=\"\${${HASH}SUM}\""
-            checkChecksum "$HASH" "$HASH_VALUE" "$OUT_FILE"
+    if [ "$doChecksum" -gt 0 ]; then
+        for hash in ${knownHashes[@]}; do
+            eval "local hashValue=\"\${${hash}SUM}\""
+            checkChecksum "$hash" "$hashValue" "$OUT_FILE"
         done
     fi
 }
 
 # Main ########################################################################
 
-if [ $# -eq 0 -o $# -gt 2 ]; then
-    usage 1>&2
-    exit 1
-fi
+main()
+{
+    local -i doChecksum=1
+    local configFile=''
+    local url=''
+    local outFile=''
+    local arg=''
+    local sha1=''
+    local sha256=''
+    local md5=''
+    local httpProxy=''
 
-DO_CHECKSUM=1
-case "$1" in
-  '-h'|'--help')
-     usage
-     exit 0
-     ;;
-  '--no-checksum')
-     DO_CHECKSUM=0
-     ;;
-  '-c')
-    if [ $# -ne 2 ]; then
+    if (( $# == 0 || $# > 2 )); then
         usage 1>&2
         exit 1
     fi
-    configDownload "$DO_CHECKSUM" "$2"
-    ;;
-  '--config='*)
-    configDownload "$DO_CHECKSUM" "${1#--config=}"
-    ;;
-  *)
-    normalDownload "$DO_CHECKSUM" "$@"
-    ;;
-esac
+
+    while (( $# > 0 )); do
+        arg="$1"; shift
+        case "$arg" in
+          '-h'|'--help')
+             usage
+             exit 0
+             ;;
+          '--no-checksum')
+             doChecksum=0
+             ;;
+          '-c')
+            if (( $# != 1 )); then
+                usage 1>&2
+                exit 1
+            fi
+            configFile="$1"; shift
+            ;;
+          '--config='*)
+            configFile="${arg#--config=}"
+            ;;
+          '--sha1='*)
+            sha1="${arg#--sha1=}"
+            ;;
+          '--sha256='*)
+            sha256="${arg#--sha256=}"
+            ;;
+          '--md5='*)
+            md5="${arg#--md5=}"
+            ;;
+          '--http-proxy='*)
+            httpProxy="${arg#--http-proxy=}"
+            case "$httpProxy" in
+                '') ;;
+                'http://'*) ;;
+                *) httpProxy="http://$httpProxy";;
+            esac
+            ;;
+          *)
+            url="$arg"
+            if (( $# == 1 )); then
+                outFile="$1"; shift
+            fi
+            ;;
+        esac
+    done
+
+    if [[ -n "$httpProxy" ]]; then
+        export http_proxy="$httpProxy"
+    fi
+
+    if [[ -n "$configFile" ]]; then
+        configDownload "$doChecksum" "$configFile"
+    else
+        normalDownload "$doChecksum" "$sha1" "$sha256" "$md5" "$url" "$outFile"
+    fi
+}
+
+main "$@"
 
 # vim:ts=4 sw=4 expandtab
