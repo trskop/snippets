@@ -1,0 +1,10 @@
+#!/bin/bash
+    
+set -e
+
+function generateScript()
+{
+    echo 'echo "$0"'
+}
+
+source "$BOOTSTRAP_INCLUDE"

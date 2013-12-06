@@ -1,0 +1,13 @@
+#!/bin/bash
+    
+set -e
+
+function generateScript()
+{
+    cat << EOF
+trap "rm -f -- '\$0'" INT TERM EXIT
+echo 'Hello World!'
+EOF
+}
+
+source "$BOOTSTRAP_INCLUDE"
