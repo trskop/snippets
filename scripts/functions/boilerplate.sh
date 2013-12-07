@@ -29,14 +29,34 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+
+# List of functions to be called and its output evaluated at the beginning of
+# function definition. Don't use this array directly unless you have to, rather
+# register functions using atBeginFunction() function.
+declare -a __atBeginFunction=()
+
+
 # Summary:
 #
-#   Generate function specific boilerplate code that is required for call
-#   traces to work.
+#   Register function that should be called and its output evaluated at the
+#   beginning of function definition.
 #
 # Usage:
 #
-#   bootstrap FUNCTION_NAME
+#   atBeginFunction FUNCTION_NAME [...]
+atBeginFunction()
+{
+    __atBeginFunction=("${__atBeginFunction[@]}" "$@")
+}
+
+
+# Summary:
+#
+#   Generate function specific boilerplate code including custom call stack.
+#
+# Usage:
+#
+#   beginFunction [FUNCTION_NAME]
 #
 # Description:
 #
@@ -45,12 +65,15 @@
 # __call, where first contains function name and the secon array of already
 # called functions up to function being currently executed.
 #
+#   If argument FUNCTION_NAME is provided than it overrides the real name of
+# current function.
+#
 # Example:
 #
 #     # ---8<---
 #     foo()
 #     {
-#         eval "$(beginFunction 'foo')"
+#         eval "$(beginFunction)"
 #
 #         # Function code goes here.
 #         :
@@ -58,12 +81,19 @@
 #     # ---8<---
 beginFunction()
 {
-    local -r functionName="$1"; shift
+    local -r functionName="${1:-\${FUNCNAME[0]}}"
 
+    # Note that __call is in reverse order compared to FUNCNAME.
     cat << EOF
-local -r __func='$functionName';
+local -r __func="$functionName";
 local -r -a __call=("\${__call[@]}" "\$__func");
+local -r -i __argc=\$#;
+local -r -a __argv=("\$@");
 EOF
+
+    for func in "${__atBeginFunction[@]}"; do
+        "$func"
+    done
 }
 
 
@@ -81,7 +111,7 @@ EOF
 #   Function concatenates elements of __call variable in to simply
 # understandable string, e.g. "main(): foo(): bar(): ". Such string can be used
 # as a prefix for various messages either printed to the user or logged by some# logging facility.
-# 
+#
 #   As implied by the previous paragraph, this function requires __call array
 # to be properly defined and contain valid value. Note that function calltrace
 # doesn't define any local value for it, that would result in having it present
@@ -128,11 +158,6 @@ insertFunctionBolierplate()
 {
     sed -r -e "
 /^[ \\t]*(function[ \\t]+)?[0-9a-zA-Z_]+\\(\\)/{
-
-    # Generate boilerplate code for function we are currently in and store it
-    # in hold buffer for later usage.
-    h;s/^(.*[ \\t])?([0-9a-zA-Z_]+)\\(\\).*$/eval \"\$(beginFunction '\2')\"/;x
-
     # Loop through the lines, starting from current line, untill opening curly
     # bracket is found and then insert the boilerplate code after it.
     #
@@ -146,13 +171,8 @@ insertFunctionBolierplate()
     # or even:
     #
     #     function foo() { :; }
-    #
-    # Unfortunatelly the later case is not currently supported.
     : loop;{
-        /\\{/{
-            p;g
-            b loop-end
-        }
+        s/^([^{]*\{)(.*)$/\1 eval \"\$(beginFunction)\"; \2/;t loop-end
         n;b loop
     };: loop-end
 }"

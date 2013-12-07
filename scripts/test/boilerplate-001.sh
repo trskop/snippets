@@ -37,13 +37,13 @@ getInclude()
 
     # .../scripts/test/call-trace-001.sh -> .../scripts/test
 
-    # .../scripts/test -> .../scripts/lib/call-trace.sh
+    # .../scripts/test -> .../scripts/lib/$fileName
     result="${result%/*}/functions/$fileName"
 
     echo "$result"
 }
 
-source "$(getInclude "${0%/*}" 'call-trace.sh')"
+source "$(getInclude "${0%/*}" 'boilerplate.sh')"
 
 testCase()
 {
@@ -55,9 +55,22 @@ testCase()
         getFixtureFilePath "$startingPoint" "$testCaseName" "$fixtureName")"
     local -r resultFile="$(
         getResultFilePath "$startingPoint" "$testCaseName" "$fixtureName")"
+    local -i printResult=0
+
+    if (( $# > 0 )); then
+        case "$1" in
+          --print-result)
+            printResult=1
+            ;;
+        esac
+    fi
 
     insertFunctionBolierplate < "$fixtureFile" \
-    | cmp --silent "$resultFile" - && success || failure
+    | if (( printResult == 0 )); then
+        cmp --silent "$resultFile" - && success || failure
+    else
+        cat
+    fi
 }
 
 testCase "$@"

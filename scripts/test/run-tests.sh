@@ -1,9 +1,9 @@
 #!/bin/bash
 
 declare -a testCases=(
+    'boilerplate-001.sh'
     'bootstrap-001.sh'
     'bootstrap-002.sh'
-    'call-trace-001.sh'
 )
 
 main()

@@ -1,0 +1,19 @@
+function foo() { eval "$(beginFunction)"; 
+    :
+}
+
+function foo()
+{ eval "$(beginFunction)"; 
+    :
+}
+
+foo() { eval "$(beginFunction)"; 
+    :
+}
+
+foo()
+{ eval "$(beginFunction)"; 
+    :
+}
+
+foo() { eval "$(beginFunction)";  :; }
