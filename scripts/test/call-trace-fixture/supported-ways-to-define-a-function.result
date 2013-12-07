@@ -1,0 +1,21 @@
+function foo() {
+eval "$(beginFunction 'foo')"
+    :
+}
+
+function foo()
+{
+eval "$(beginFunction 'foo')"
+    :
+}
+
+foo() {
+eval "$(beginFunction 'foo')"
+    :
+}
+
+foo()
+{
+eval "$(beginFunction 'foo')"
+    :
+}

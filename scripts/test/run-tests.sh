@@ -3,6 +3,7 @@
 declare -a testCases=(
     'bootstrap-001.sh'
     'bootstrap-002.sh'
+    'call-trace-001.sh'
 )
 
 main()
