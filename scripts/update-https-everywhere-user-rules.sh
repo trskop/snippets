@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Copyright (c) 2013, Peter Trsko <peter.trsko@gmail.com>
 #
@@ -33,28 +33,80 @@
 
 set -e
 
+
 # Please specify full path to Git binary if you have it installed in a
 # directory that isn't present in your PATH environment variable.
-GIT='git'
+declare -r git='git'
 
-# Directory where FireFox stores it's user profiles.
-FIREFOX_PROFILES_DIR="$HOME/.mozilla/firefox"
+# Directory where Firefox stores its user profiles.
+declare -r firefoxProfilesDir="$HOME/.mozilla/firefox"
 
-if ! which "$GIT" 2>&1 > /dev/null; then
-    echo 'Error: git: Command not found.' 1>&2
-    echo '  On Debian Linux please install git-core package.' 1>&2
-    echo '  exit(1)' 1>&2
-    exit 1
-fi
 
-if [ ! -d "$FIREFOX_PROFILES_DIR" ]; then
-    echo "Warning: \`FIREFOX_PROFILES_DIR': Directory doesn't exist." 1>&2
-    echo '  Repository update is not possible.' 1>&2
-    echo '  exit(0)' 1>&2
-    exit 0
-fi
+function findHttpsEverywhereDirs()
+{
+    local -r dir="$1"; shift
 
-# See https://www.eff.org/https-everywhere/rulesets for details.
-ls -d "$FIREFOX_PROFILES_DIR"/*/HTTPSEverywhereUserRules \
-| tr '\n' '\0' \
-| xargs -0 -n1 sh -c 'if [ -d "$0/.git" ]; then cd $0; "'"$GIT"'" pull; fi'
+    find "$dir" \
+        -mindepth 2 -maxdepth 2 \
+        -name 'HTTPSEverywhereUserRules' \
+        -print0
+}
+
+
+function updateRepositories()
+{
+    local dir
+
+    while IFS= read -d $'' dir; do
+        if [[ -d "$dir/.git" ]]; then
+        (
+            cd "$dir"
+            "$git" pull
+        )
+        fi
+    done
+}
+
+
+function isCommandAvailable()
+{
+    local -r cmd="$1"; shift
+
+    which "$cmd" 2>&1 > /dev/null
+}
+
+
+function msg()
+{
+    local line
+
+    for line in "$@"; do
+        echo "$line" 1>&2
+    done
+}
+
+
+function main()
+{
+    if ! isCommandAvailable "$git"; then
+        msg 'Error: git: Command not found.' \
+            '  On Debian Linux please install git-core package.' \
+            '  exit(1)' \
+        exit 1
+    fi
+
+    if [[ ! -d "$firefoxProfilesDir" ]]; then
+        msg "Warning: \`$firefoxProfilesDir': Directory doesn't exist." \
+            '  Repository update is not possible.' \
+            '  exit(0)' \
+        exit 0
+    fi
+
+    # See https://www.eff.org/https-everywhere/rulesets for details.
+    findHttpsEverywhereDirs "$firefoxProfilesDir" \
+    | updateRepositories
+}
+
+main "$@"
+
+# vim: tabstop=4 shiftwidth=4 expandtab
