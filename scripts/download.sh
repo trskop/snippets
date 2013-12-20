@@ -33,6 +33,9 @@
 
 set -e
 
+
+# {{{ Messages and Error Handling #############################################
+
 function usage()
 {
     local -r progName="${0##*/}"
@@ -108,10 +111,35 @@ function error()
     exit $exitCode
 }
 
+function usageError()
+{
+    message 'Error' "$@"
+    echo 1>&2
+    usage 1>&2
+
+    exit 1
+}
+
+function fileAlreadyExistsError()
+{
+    local -r path="$1"; shift
+
+    error 2 '%s: File already exists.' "$path"
+}
+
+function fileDoesNotExistOrIsNotReadableError()
+{
+    local -r path="$1"; shift
+
+    error 2 '%s: File does not exist or is not readable.' "$path"
+}
+
 function warning()
 {
     message 'Warning' "$@"
 }
+
+# }}} Messages and Error Handling #############################################
 
 function isCommandAvailable()
 {
@@ -230,11 +258,11 @@ function normalDownload()
     local checksum=''
 
     dwlFile="${outFile}.download"
-    if [ -e "$outFile" ]; then
-        error 1 '%s: File already exists.' "$outFile"
-    elif [ -e "$dwlFile" ]; then
-        error 1 '%s: File already exists.' "$dwlFile"
-    fi
+    for file in "$outFile" "$dwlFile"; do
+        if [ -e "$file" ]; then
+            fileAlreadyExistsError "$file"
+        fi
+    done
 
     echo URL="'$url'" > "$dwlFile"
     echo OUT_FILE="'$outFile'" >> "$dwlFile"
@@ -285,7 +313,7 @@ function configDownload()
     if [[ -f "$dwlFile" ]] && [[ -r "$dwlFile" ]]; then
         source "$dwlFile"
     else
-        : # TODO
+        fileDoesNotExistOrIsNotReadableError "$dwlFile"
     fi
 
     if [ -z "$OUT_FILE" ]; then
@@ -304,7 +332,7 @@ function configDownload()
     fi
 }
 
-# Main ########################################################################
+# {{{ Main ####################################################################
 
 main()
 {
@@ -318,11 +346,8 @@ main()
     local sha256=''
     local md5=''
     local httpProxy=''
+    local -a restArgs=()
 
-    if (( $# == 0 || $# > 2 )); then
-        usage 1>&2
-        exit 1
-    fi
 
     while (( $# > 0 )); do
         arg="$1"; shift
@@ -335,9 +360,8 @@ main()
              doChecksum=0
              ;;
           '-c')
-            if (( $# != 1 )); then
-                usage 1>&2
-                exit 1
+            if (( $# == 0 )); then
+                usageError "\`-c': Option is missing an argument."
             fi
             configFile="$1"; shift
             ;;
@@ -365,13 +389,23 @@ main()
             doDownload=0
             ;;
           *)
-            url="$arg"
-            if (( $# == 1 )); then
-                outFile="$1"; shift
-            fi
+            restArgs=("${restArgs[@]}" "$arg")
             ;;
         esac
     done
+
+    if [[ -z "$configFile" ]]; then
+        if (( ${#restArgs[@]} == 0 )); then
+            usageError 'Too few arguments.'
+        elif (( ${#restArgs[@]} > 2 )); then
+            usageError 'Too many arguments.'
+        elif (( ${#restArgs[@]} == 2 )); then
+            outFile="${restArgs[1]}"
+        fi
+        url="${restArgs[0]}"
+    elif (( ${#restArgs[@]} > 0 )); then
+        usageError 'Too many arguments.'
+    fi
 
     if [[ -n "$httpProxy" ]]; then
         export http_proxy="$httpProxy"
@@ -399,5 +433,7 @@ main()
 }
 
 main "$@"
+
+# }}} Main ####################################################################
 
 # vim:ts=4 sw=4 expandtab
