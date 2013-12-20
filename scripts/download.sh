@@ -81,6 +81,11 @@ Options:
     variable for wget/curl. Warning: this script doesn't check if HOST and PORT
     are syntactically valid values.
 
+  -n, --no-download
+
+    Don't download, but create \`.download' file or if that is provided then
+    just verify checksum(s).
+
   -h, --help
 
     Print this help information and exit.
@@ -212,6 +217,7 @@ function checkChecksum()
 
 function normalDownload()
 {
+    local -r -i doDownload="$1"; shift
     local -r -i doChecksum="$1"; shift
     local -r sha1="$1"; shift
     local -r sha256="$1"; shift
@@ -233,7 +239,9 @@ function normalDownload()
     echo URL="'$url'" > "$dwlFile"
     echo OUT_FILE="'$outFile'" >> "$dwlFile"
 
-    download "$url" "$outFile"
+    if (( doDownload )); then
+        download "$url" "$outFile"
+    fi
 
     for hash in "${knownHashes[@]}"; do
         case "$hash" in
@@ -248,7 +256,7 @@ function normalDownload()
         fi
     done
 
-    if (( doChecksum > 0 )); then
+    if (( doChecksum )); then
         for hash in "${knownHashes[@]}"; do
             mkChecksum "$hash" "$outFile" >> "$dwlFile"
         done
@@ -259,7 +267,8 @@ function normalDownload()
 
 function configDownload()
 {
-    local -r doChecksum="$1"; shift
+    local -r -i doDownload="$1"; shift
+    local -r -i doChecksum="$1"; shift
     local -r dwlFile="$1"; shift
 
     local -r knownHashes=('SHA1' 'SHA224' 'SHA256' 'SHA384' 'SHA512' 'MD5')
@@ -283,9 +292,11 @@ function configDownload()
         OUT_FILE="${URL##*/}"
     fi
 
-    download "$URL" "$OUT_FILE"
+    if (( doDownload )); then
+        download "$URL" "$OUT_FILE"
+    fi
 
-    if [ "$doChecksum" -gt 0 ]; then
+    if (( doChecksum )); then
         for hash in ${knownHashes[@]}; do
             eval "local hashValue=\"\${${hash}SUM}\""
             checkChecksum "$hash" "$hashValue" "$OUT_FILE"
@@ -297,6 +308,7 @@ function configDownload()
 
 main()
 {
+    local -i doDownload=1
     local -i doChecksum=1
     local configFile=''
     local url=''
@@ -349,6 +361,9 @@ main()
                 *) httpProxy="http://$httpProxy";;
             esac
             ;;
+          '-n'|'--no-download')
+            doDownload=0
+            ;;
           *)
             url="$arg"
             if (( $# == 1 )); then
@@ -363,9 +378,23 @@ main()
     fi
 
     if [[ -n "$configFile" ]]; then
-        configDownload "$doChecksum" "$configFile"
+        configDownload \
+            "$doDownload" \
+            "$doChecksum" \
+            "$configFile"
     else
-        normalDownload "$doChecksum" "$sha1" "$sha256" "$md5" "$url" "$outFile"
+        if (( !doDownload )); then
+            # Don't check, since we don't have a file to do that for.
+            doChecksum=0
+        fi
+        normalDownload \
+            "$doDownload" \
+            "$doChecksum" \
+            "$sha1" \
+            "$sha256" \
+            "$md5" \
+            "$url" \
+            "$outFile"
     fi
 }
 
