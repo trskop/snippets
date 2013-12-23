@@ -82,18 +82,24 @@ extern "C" {
 
 /* Conditional execution depending on maybe value */
 
-#define __maybe(x, predicate, getter, on_nothing, on_just, ...)     \
-    (                                                               \
-        predicate(x)                                                \
-        ? on_just(getter(x), ##__VA_ARGS__)                         \
-        : on_nothing(__VA_ARGS__)                                   \
-    )
+#define __maybe_cond(x, predicate, on_nothing, on_just)         \
+    (predicate(x) ? on_just : on_nothing)
 
-#define maybe(v, on_nothing, on_just, ...)  \
+#define __maybe(x, predicate, getter, on_nothing, on_just, ...) \
+    __maybe_cond(x, predicate, on_nothing(__VA_ARGS__),         \
+        on_just(getter(x), ##__VA_ARGS__))
+
+#define maybe(v, on_nothing, on_just, ...)      \
     __maybe(v, is_just, from_just, on_nothing, on_just, ##__VA_ARGS__)
 
-#define ptr_maybe(v, on_nothing, on_just, ...)          \
+#define ptr_maybe(v, on_nothing, on_just, ...)  \
     __maybe(v, is_ptr_just, from_ptr_just, on_nothing, on_just, ##__VA_ARGS__)
+
+#define from_maybe(x, d, on_just, ...)          \
+    __maybe_cond(x, is_just, d, on_just(from_just(x), ##__VA_ARGS__)
+
+#define from_ptr_maybe(x, d, on_just, ...)      \
+    __maybe_cond(x, is_ptr_just, d, on_just(from_just(x), ##__VA_ARGS__)
 
 #ifdef __cplusplus
 }
