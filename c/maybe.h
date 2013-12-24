@@ -52,11 +52,28 @@ extern "C" {
 #define anonymous_struct_maybe(type)    \
     struct_maybe(, type)
 
+#define typedef_maybe(sn, tn, type)     \
+    typedef struct_maybe(sn, type) tn
+
+#define only_typedef_maybe(tn, type)    \
+    typedef_maybe(, tn, type)
+
+#define __maybe_struct_name(str)        maybe_ ## str ## _s
+#define __maybe_typedef_name(str)       maybe_ ## str ## _t
+#define __maybe_ptr_struct_name(str)    __maybe_struct_name(str ## _ptr)
+#define __maybe_ptr_typedef_name(str)   __maybe_typedef_name(str ## _ptr)
+
 #define struct_maybe_of(type)           \
-    struct_maybe(maybe_ ## type ## _s, type)
+    struct_maybe(__maybe_struct_name(type), type)
 
 #define struct_maybe_ptr_of(type)       \
-    struct_maybe(maybe_ ## type ## _ptr_s, type *)
+    struct_maybe(__maybe_ptr_struct_name(type), type *)
+
+#define typedef_maybe_of(type)          \
+    only_typedef_maybe(__maybe_typedef_name(type), type);
+
+#define typedef_maybe_ptr_of(type)      \
+    only_typedef_maybe(__maybe_ptr_typedef_name(type), type *);
 
 /* Setting maybe */
 
