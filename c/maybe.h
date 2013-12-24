@@ -40,11 +40,18 @@ extern "C" {
 
 /* Declaring maybe structure */
 
+/* We might decide to make this platform dependent. */
+typedef uint64_t __nothing_t;
+
+/* When encoding nothing variant then value.nothing should always be set to
+ * zero. This prevents some missuses when type is a pointer or zero/NULL
+ * terminated array.
+ */
 #define struct_maybe(name, type)        \
     struct name {                       \
         uint8_t is_just;                \
         union {                         \
-            uint64_t nothing;           \
+            __nothing_t nothing;        \
             type just;                  \
         } value;                        \
     }
