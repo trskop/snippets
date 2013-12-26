@@ -32,6 +32,7 @@
 /* TODO: Proper guard macro. */
 
 #include <stdint.h>
+    /* uint8_t, uint64_t */
 
 
 #ifdef __cplusplus
@@ -45,7 +46,7 @@ typedef uint64_t __nothing_t;
 
 /* When encoding nothing variant then value.nothing should always be set to
  * zero. This prevents some missuses when type is a pointer or zero/NULL
- * terminated array.
+ * terminated array. In any other case never use value.nothing for any purpose.
  */
 #define struct_maybe(name, type)        \
     struct name {                       \
@@ -77,10 +78,10 @@ typedef uint64_t __nothing_t;
     struct_maybe(__maybe_ptr_struct_name(type), type *)
 
 #define typedef_maybe_of(type)          \
-    only_typedef_maybe(__maybe_typedef_name(type), type);
+    only_typedef_maybe(__maybe_typedef_name(type), type)
 
 #define typedef_maybe_ptr_of(type)      \
-    only_typedef_maybe(__maybe_ptr_typedef_name(type), type *);
+    only_typedef_maybe(__maybe_ptr_typedef_name(type), type *)
 
 /* Setting maybe */
 
@@ -112,6 +113,7 @@ typedef uint64_t __nothing_t;
 #define __maybe(x, predicate, getter, on_nothing, on_just, ...) \
     __maybe_cond(x, predicate, on_nothing(__VA_ARGS__),         \
         on_just(getter(x), ##__VA_ARGS__))
+
 
 #define maybe(v, on_nothing, on_just, ...)      \
     __maybe(v, is_just, from_just, on_nothing, on_just, ##__VA_ARGS__)
