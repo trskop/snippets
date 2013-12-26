@@ -39,7 +39,7 @@
 extern "C" {
 #endif
 
-/* Declaring maybe structure */
+/* {{{ Declaring maybe structure ******************************************* */
 
 /* We might decide to make this platform dependent. */
 typedef uint64_t __nothing_t;
@@ -83,7 +83,9 @@ typedef uint64_t __nothing_t;
 #define typedef_maybe_ptr_of(type)      \
     only_typedef_maybe(__maybe_ptr_typedef_name(type), type *)
 
-/* Setting maybe */
+/* }}} Declaring maybe structure ******************************************* */
+
+/* {{{ Initializing and setting maybe ************************************** */
 
 #define NOTHING             \
     { .is_just = 0          \
@@ -95,7 +97,9 @@ typedef uint64_t __nothing_t;
     , .value.just = v       \
     }
 
-/* Querying maybe */
+/* }}} Initializing and setting maybe ************************************** */
+
+/* {{{ Querying maybe ****************************************************** */
 
 #define is_just(x)          (x.is_just > 0)
 #define is_nothing(x)       (x.is_just == 0)
@@ -105,7 +109,9 @@ typedef uint64_t __nothing_t;
 #define is_ptr_nothing(x)   (x->is_just == 0)
 #define from_ptr_just(v)    (v->value.just)
 
-/* Conditional execution depending on maybe value */
+/* }}} Querying maybe ****************************************************** */
+
+/* {{{ Conditional execution depending on maybe value ********************** */
 
 #define __maybe_cond(x, predicate, on_nothing, on_just)         \
     (predicate(x) ? on_just : on_nothing)
@@ -126,6 +132,8 @@ typedef uint64_t __nothing_t;
 
 #define from_ptr_maybe(x, d, on_just, ...)      \
     __maybe_cond(x, is_ptr_just, d, on_just(from_just(x), ##__VA_ARGS__)
+
+/* }}} Conditional execution depending on maybe value ********************** */
 
 #ifdef __cplusplus
 }
