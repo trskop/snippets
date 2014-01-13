@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, Peter Trško <peter.trsko@gmail.com>
+/* Copyright (c) 2013, 2014, Peter Trško <peter.trsko@gmail.com>
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -48,8 +48,8 @@ typedef uint64_t __nothing_t;
  * zero. This prevents some missuses when type is a pointer or zero/NULL
  * terminated array. In any other case never use value.nothing for any purpose.
  */
-#define struct_maybe(name, type)        \
-    struct name {                       \
+#define struct_maybe(struct_name, type) \
+    struct struct_name {                \
         uint8_t is_just;                \
         union {                         \
             __nothing_t nothing;        \
@@ -60,14 +60,15 @@ typedef uint64_t __nothing_t;
 #define anonymous_struct_maybe(type)    \
     struct_maybe(, type)
 
-#define typedef_maybe(sn, tn, type)     \
-    typedef struct_maybe(sn, type) tn
+#define typedef_maybe(struct_name, typedef_name, type)  \
+    typedef struct_maybe(struct_name, type) typedef_name
 
-#define only_typedef_maybe(tn, type)    \
-    typedef_maybe(, tn, type)
+#define only_typedef_maybe(typedef_name, type)          \
+    typedef_maybe(, typedef_name, type)
 
-#define __maybe_struct_name(str)        maybe_ ## str ## _s
-#define __maybe_typedef_name(str)       maybe_ ## str ## _t
+#define __maybe_basename(str)           maybe_ ## str
+#define __maybe_struct_name(str)        __maybe_basename(str ## _s)
+#define __maybe_typedef_name(str)       __maybe_basename(str ## _t)
 #define __maybe_ptr_struct_name(str)    __maybe_struct_name(str ## _ptr)
 #define __maybe_ptr_typedef_name(str)   __maybe_typedef_name(str ## _ptr)
 
@@ -87,11 +88,39 @@ typedef uint64_t __nothing_t;
 
 /* {{{ Initializing and setting maybe ************************************** */
 
+/* Example:
+ *
+ *   typedef_maybe_of(int);
+ *   // ----8<----
+ *
+ *   int main(int argc, char *argv[], char *env[])
+ *   {
+ *       // ----8<----
+ *       maybe_int_t foo = NOTHING;
+ *       // ----8<----
+ *       foo = (maybe_int_t)NOTHING;
+ *       // ----8<----
+ *   }
+ */
 #define NOTHING             \
     { .is_just = 0          \
     , .value.nothing = 0    \
     }
 
+/* Example:
+ *
+ *   typedef_maybe_of(int);
+ *   // ----8<----
+ *
+ *   int main(int argc, char *argv[], char *env[])
+ *   {
+ *       // ----8<----
+ *       maybe_int_t foo = JUST(42);
+ *       // ----8<----
+ *       foo = (maybe_int_t)JUST(24);
+ *       // ----8<----
+ *   }
+ */
 #define JUST(v)             \
     { .is_just = 1          \
     , .value.just = v       \
@@ -117,7 +146,8 @@ typedef uint64_t __nothing_t;
     (predicate(x) ? on_just : on_nothing)
 
 #define __maybe(x, predicate, getter, on_nothing, on_just, ...) \
-    __maybe_cond(x, predicate, on_nothing(__VA_ARGS__),         \
+    __maybe_cond(x, predicate,                                  \
+        on_nothing(__VA_ARGS__),                                \
         on_just(getter(x), ##__VA_ARGS__))
 
 
