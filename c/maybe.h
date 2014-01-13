@@ -33,6 +33,10 @@
 
 #include <stdint.h>
     /* uint8_t, uint64_t */
+#include <stdlib.h>
+    /* malloc(), free() */
+#include <string.h>
+    /* memset() */
 
 
 #ifdef __cplusplus
@@ -164,6 +168,62 @@ typedef uint64_t __nothing_t;
     __maybe_cond(x, is_ptr_just, d, on_just(from_just(x), ##__VA_ARGS__)
 
 /* }}} Conditional execution depending on maybe value ********************** */
+
+/* {{{ Allocating maybes *************************************************** */
+
+#define __alloc_maybe(memset_func, alloc_func, maybe_type)          \
+    ((maybe_type *)memset_func(alloc_func(sizeof(maybe_type)), 0,   \
+        sizeof(maybe_type)))
+
+
+#define malloc_struct_maybe_of(type)        \
+    __alloc_maybe(memset, malloc, __maybe_struct_name(type))
+
+#define malloc_typedef_maybe_of(type)       \
+    __alloc_maybe(memset, malloc, __maybe_typedef_name(type))
+
+#define malloc_struct_maybe_ptr_of(type)    \
+    __alloc_maybe(memset, malloc, __maybe_ptr_struct_name(type))
+
+#define malloc_typedef_maybe_ptr_of(type)   \
+    __alloc_maybe(memset, malloc, __maybe_ptr_typedef_name(type))
+
+/* }}} Allocating maybes *************************************************** */
+
+/* {{{ Freeing maybes ****************************************************** */
+
+#define __free_just(free_func, maybe)               \
+    free_func(from_just(maybe))                     \
+
+#define __free_ptr_just(free_func, maybe_ptr)       \
+    free_func(from_ptr_just(maybe_ptr))             \
+
+/* Helper macro for reducing repetition */
+#define __on_true_do(x, predicate, action, arg0)    \
+    do {                                            \
+        if (predicate(x))                           \
+        {                                           \
+            action(arg0, x);                        \
+        }                                           \
+    } while (0)
+
+#define free_just(maybe)                            \
+    __on_true_do(maybe, is_just, __free_just, free)
+
+#define free_ptr_just(maybe_ptr)                    \
+    __on_true_do(maybe_ptr, is_ptr_just, __free_ptr_just, free)
+
+#define __free_maybe_ptr(free_func, maybe_ptr)      \
+    do {                                            \
+        __on_true_do(maybe_ptr, is_ptr_just,        \
+            __free_ptr_just, free_func);            \
+        free_func(maybe_ptr);                       \
+    } while (0)
+
+#define free_maybe_ptr(maybe_ptr)                   \
+    __free_maybe_ptr(free, maybe_ptr)
+
+/* }}} Freeing maybes ****************************************************** */
 
 #ifdef __cplusplus
 }
