@@ -1,0 +1,18 @@
+REGEDIT4
+
+; {{{ Open Console2 Here entries
+
+[HKEY_CLASSES_ROOT\Directory\Background\shell\Console2]
+@="Open Console2 Here"
+
+[HKEY_CLASSES_ROOT\Directory\Background\shell\Console2\command]
+@="C:\\opt\\batch-files\\console2.bat \"%V\""
+
+[HKEY_CLASSES_ROOT\Directory\shell\Console2]
+@="Open Console2 Here"
+
+[HKEY_CLASSES_ROOT\Directory\shell\Console2\command]
+@="C:\\opt\\batch-files\\console2.bat \"%V\""
+
+; }}} Open Console2 Here entries
+
