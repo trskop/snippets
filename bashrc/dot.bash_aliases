@@ -82,4 +82,11 @@ fi
 # urxvt and xterm.
 alias term-title='printf "\033]2;%s\007"'
 
+# Without this Screen would report: "$TERM too long - sorry."
+if [[ "$(systemName)" == 'Cygwin' ]] \
+    && [[ "$TERM" == 'rxvt-unicode-256color' ]]
+then
+    alias screen='TERM=rxvt-unicode screen'
+fi
+
 # vim: tabstop=4 shiftwidth=4 expandtab filetype=sh
