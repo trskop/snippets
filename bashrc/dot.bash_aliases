@@ -78,4 +78,8 @@ if haveCommand 'mplayer'; then
     alias mplayer_='mplayer'
 fi
 
+# Set terminal title to specified value. Usage: term-title STRING. Tested with
+# urxvt and xterm.
+alias term-title='printf "\033]2;%s\007"'
+
 # vim: tabstop=4 shiftwidth=4 expandtab filetype=sh
