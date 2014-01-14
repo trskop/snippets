@@ -41,6 +41,85 @@ if [[ -d "$HOME/bin" ]]; then
     PATH="$HOME/bin:$PATH"
 fi
 
+# {{{ Variables {http,https,ftp,all}_proxy ####################################
+
+if [[ -f "$HOME/.bash_proxies" ]] && [[ -r "$HOME/.bash_proxies" ]]; then
+    source "$HOME/.bash_proxies"
+fi
+
+declare -i len
+declare -i idx
+
+len=${#httpProxies[@]}
+if (( len > 0 )); then
+    if (( len > 1 )); then
+        idx=$((RANDOM % len))
+    else
+        idx=0
+    fi
+
+    http_proxy="${httpProxies[$idx]}"
+    export http_proxy
+
+    HTTP_PROXY="$http_proxy"
+    export HTTP_PROXY
+fi
+
+len=${#httpsProxies[@]}
+if (( len > 0 )); then
+    if (( len > 1 )); then
+        idx=$((RANDOM % len))
+    else
+        idx=0
+    fi
+
+    https_proxy="${httpsProxies[$idx]}"
+    export https_proxy
+
+    HTTPS_PROXY="$https_proxy"
+    export https_proxy HTTPS_PROXY
+fi
+
+len=${#ftpProxies[@]}
+if (( len > 0 )); then
+    if (( len > 1 )); then
+        idx=$((RANDOM % len))
+    else
+        idx=0
+    fi
+
+    ftp_proxy="${ftpProxies[$idx]}"
+    export ftp_proxy
+
+    FTP_PROXY="$ftp_proxy"
+    export FTP_PROXY
+fi
+
+len=${#allProxies[@]}
+if (( len > 0 )); then
+    if (( len > 1 )); then
+        idx=$((RANDOM % len))
+    else
+        idx=0
+    fi
+
+    all_proxy="${allProxies[$idx]}"
+    export all_proxy
+
+    ALL_PROXY="$all_proxy"
+    export ALL_PROXY
+fi
+
+# TODO: no_proxy
+
+unset -v idx
+unset -v len
+unset -v httpProxies
+unset -v httpsProxies
+unset -v ftpProxies
+unset -v allProxies
+
+# }}} Variables {http,https,ftp,all}_proxy ####################################
 # }}} Environment variables ###################################################
 
 # vim: tabstop=4 shiftwidth=4 expandtab filetype=sh

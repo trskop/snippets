@@ -1,0 +1,6 @@
+declare -a httpProxies=()
+declare -a httpsProxies=()
+declare -a ftpProxies=()
+declare -a allProxies=()
+
+# vim: tabstop=4 shiftwidth=4 expandtab filetype=sh
