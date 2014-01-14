@@ -1,0 +1,61 @@
+# {{{ Shell Options ###########################################################
+
+set -b
+set -o vi
+set bell-style visible
+shopt -s checkwinsize
+
+# }}} Shell Options ###########################################################
+
+# {{{ Environment Variables ###################################################
+
+# {{{ History Options #########################################################
+
+# Don't put duplicate lines in the history.
+export HISTCONTROL="$HISTCONTROL${HISTCONTROL:+,}ignoredups"
+
+# Increase history size to some very high, but sensible value. It's not as fast
+# on Windows as you might expect comming from UNIX/Linux.
+export HISTSIZE=100000
+
+# }}} History Options #########################################################
+
+# {{{ Prompt string ###########################################################
+
+PS1='\[\e[32m\][ \[\e[37m\]\u@\h \W\[\e[32m\] ]\$\[\e[22;0m\] '
+
+# Prompt modifikacation for SCREEN
+if [[ -n "$WINDOW" ]]; then
+    PS1="$(sed "/\\h\#/b; /\\h/s/\(\\h\)/\1\#$WINDOW/" <<< "$PS1")"
+fi
+
+export PS1
+
+# }}} Prompt string ###########################################################
+
+if [[ -d "$HOME/man" ]]; then
+    export MANPATH="$HOME/man${MANPATH:+:}$MANPATH"
+fi
+
+if haveCommand 'less'; then
+    export PAGER='less'
+fi
+
+for cmd in 'vim' 'vi'; do
+    if haveCommand "$cmd"; then
+        export EDITOR="$cmd"
+        export VISUAL="$cmd"
+        break
+    fi
+done
+
+for cmd in 'elinks' 'links'; do
+    if haveCommand "$cmd"; then
+        export BROWSER="$cmd"
+        break
+    fi
+done
+
+# }}} Environment Variables ###################################################
+
+# vim: tabstop=4 shiftwidth=4 expandtab filetype=sh
