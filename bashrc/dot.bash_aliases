@@ -45,6 +45,8 @@ fi
 # Wrapper 'colordiff' for standard 'diff' needs to be installed separately.
 if haveCommand 'colordiff'; then
     alias diff='colordiff'
+elif haveCommand 'grc'; then
+    alias diff='grc diff'
 fi
 
 # Make destructive operations safer by forcing interactive mode.
