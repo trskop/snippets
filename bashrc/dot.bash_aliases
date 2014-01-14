@@ -57,7 +57,7 @@ alias rm='rm -i'
 if haveCommand 'sudo'; then
     alias evil='sudo su -'
 elif haveCommand 'su'; then
-    # Cygwin and Msys don't have 'su' command.
+    # In example Cygwin and Msys doesn't have 'su' command.
     alias evil='su -'
 fi
 
@@ -66,10 +66,15 @@ if haveCommand 'apt-get'; then
 fi
 
 if haveCommand 'ghci'; then
+    # Option -ignore-dot-ghci will force ghci to not load settings from
+    # ~/.ghc/ghci.conf configuration file.
     alias ghci_='ghci -ignore-dot-ghci -Wall'
 fi
 
 if haveCommand 'mplayer'; then
+    # Simple way to circumvent Bash completion for mplayer. Useful in cases
+    # when trying to look at partially downloaded file that doesn't have the
+    # right extension, etc.
     alias mplayer_='mplayer'
 fi
 
