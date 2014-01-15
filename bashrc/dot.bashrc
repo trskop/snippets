@@ -48,7 +48,7 @@ declare -a bashrc_suffixes=(
 declare rcfile
 
 # Source bashrc components one by one.
-for sfx in functions "${bashrc_suffixes[@]}"; do
+for sfx in "${bashrc_suffixes[@]}"; do
     rcfile="$HOME/.bash_${sfx}"
 
     [[ -f "$rcfile" ]] && [[ -r "$rcfile" ]] && . "$rcfile"
