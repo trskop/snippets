@@ -43,14 +43,25 @@ function systemName()
     local -r sys="$(uname -s)"
 
     case "$(uname -s)" in
-      'MINGW32_NT'*|'CYGWIN_NT'*)
-        # This will return Msys or Cygwin, respectively.
-        uname -o
+      'MINGW32_NT'*)
+        echo 'MinGW'
+        ;;
+      'CYGWIN_NT'*)
+        echo 'Cygwin'
         ;;
       *)
         echo "$sys"
         ;;
     esac
 }
+
+if [[ "$(systemName)" == 'MinGW' ]]; then
+    function mingwRootDir()
+    {
+        local -r rootDir="$(cd /; pwd -W)"
+
+        echo "$rootDir"
+    }
+fi
 
 # vim: tabstop=4 shiftwidth=4 expandtab filetype=sh
