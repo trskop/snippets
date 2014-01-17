@@ -29,6 +29,17 @@ if [[ -n "$WINDOW" ]]; then
     PS1="$(sed "/\\h\#/b; /\\h/s/\(\\h\)/\1\#$WINDOW/" <<< "$PS1")"
 fi
 
+if [[ "$(systemName)" == 'MinGW' ]]; then
+    PS1='\[\033]0;$MSYSTEM:${PWD//[^[:ascii:]]/?}\007\]'"$PS1"
+
+    declare rootDir="$(mingwRootDir)"
+    if [[ "${rootDir##*/}" == 'Git' ]]; then
+        # We are in Msys Git.
+        PS1="$(sed "s/\([\\][wW]\)/\1\$(__git_ps1)/" <<< "$PS1")"
+    fi
+    unset rootDir
+fi
+
 export PS1
 
 # }}} Prompt string ###########################################################
