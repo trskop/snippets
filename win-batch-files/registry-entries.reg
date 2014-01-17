@@ -2,6 +2,12 @@ REGEDIT4
 
 ; {{{ Open Console2 Here entries
 
+[HKEY_CLASSES_ROOT\Drive\shell\Console2]
+@="Open Console2 Here"
+
+[HKEY_CLASSES_ROOT\Drive\shell\Console2\command]
+@="C:\\opt\\batch-files\\console2.bat \"%L\""
+
 [HKEY_CLASSES_ROOT\Directory\Background\shell\Console2]
 @="Open Console2 Here"
 
@@ -12,7 +18,28 @@ REGEDIT4
 @="Open Console2 Here"
 
 [HKEY_CLASSES_ROOT\Directory\shell\Console2\command]
-@="C:\\opt\\batch-files\\console2.bat \"%V\""
+@="C:\\opt\\batch-files\\console2.bat \"%L\""
 
 ; }}} Open Console2 Here entries
 
+; {{{ Open uRXVT-X (Cygwin) Here entries
+
+[HKEY_CLASSES_ROOT\Drive\shell\urxvt-x]
+@="Open uRXVT-X (Cygwin) Here"
+
+[HKEY_CLASSES_ROOT\Drive\shell\urxvt-x\command]
+@="C:\\opt\\batch-files\\urxvt-x.bat \"%L\""
+
+[HKEY_CLASSES_ROOT\Directory\Background\shell\urxvt-x]
+@="Open uRXVT-X (Cygwin) Here"
+
+[HKEY_CLASSES_ROOT\Directory\Background\shell\urxvt-x\command]
+@="C:\\opt\\batch-files\\urxvt-x.bat \"%V\""
+
+[HKEY_CLASSES_ROOT\Directory\shell\urxvt-x]
+@="Open uRXVT-X (Cygwin) Here"
+
+[HKEY_CLASSES_ROOT\Directory\shell\urxvt-x\command]
+@="C:\\opt\\batch-files\\urxvt-x.bat \"%L\""
+
+; }}} Open uRXVT-X (Cygwin) Here entries
