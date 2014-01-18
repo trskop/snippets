@@ -103,6 +103,9 @@ for full license text.
 [cabal-install]:
   http://www.haskell.org/haskellwiki/Cabal-Install
   "HaskellWiki: Command-line tool that automates fetching, configuration, compilation and installation of Haskell libraries and programs."
+[Cygwin]:
+  http://cygwin.com
+  "Cygwin project homepage."
 [Cygwin User's Guide -- Sybolic Links]:
   http://cygwin.com/cygwin/cygwin-ug-net/using.html#pathnames-symlinks
   "Cygwin User's Guide, Chapter 3. Using Cygwin: Symbolic links"
