@@ -14,7 +14,7 @@ Flexible collection of Bash \*rc scripts that is used on various systems that
 include:
 
 * Debian and Ubuntu Linux distributions.
-* Cygwin and Msys Git on Windows 7.
+* [Cygwin][] and [msysGit][] on Windows 7.
 
 It might work on other systems as well but it wasn't tested.
 
@@ -27,9 +27,11 @@ points to `bashrc/dot.bashrc`:
 Substitute `$PATH_TO_REPOSITORY` for whatever directory was used for this
 repository clone, e.g. `~/opt/github.com/trskop/snippets`.
 
-In Cygwin environment above installation will work also, but note that symbolic
-links created will be Cygwin symbolic links and not [NTFS symbolic links
-][NTFS symbolic link]. Plan is to support NTFS symbolic links also.
+In [Cygwin][] environment above installation will work also, but note that on
+some systems symbolic links created be [Cygwin][] are regular files and not
+[NTFS symbolic links ][NTFS symbolic link]. See [StackOverflow: How to make
+symbolic link with cygwin in Windows 7][] question and [Cygwin User's
+Guide][Cygwin User's Guide -- Sybolic Links] for details how to change this. 
 
 In Msys environment it is possible to use [NTFS symbolic links
 ][NTFS symbolic link], but then it will be necessary to do it for all component
@@ -101,12 +103,21 @@ for full license text.
 [cabal-install]:
   http://www.haskell.org/haskellwiki/Cabal-Install
   "HaskellWiki: Command-line tool that automates fetching, configuration, compilation and installation of Haskell libraries and programs."
+[Cygwin User's Guide -- Sybolic Links]:
+  http://cygwin.com/cygwin/cygwin-ug-net/using.html#pathnames-symlinks
+  "Cygwin User's Guide, Chapter 3. Using Cygwin: Symbolic links"
 [ghc-gc-tune]:
   https://donsbot.wordpress.com/2010/07/05/ghc-gc-tune-tuning-haskell-gc-settings-for-fun-and-profit/
   "Don Stewart's Blog: ghc-gc-tune: Tuning Haskell GC settings for fun and profit"
+[msysGit]:
+  http://code.google.com/p/msysgit/
+  "msysGit: Git on Windows"
 [NTFS symbolic link]:
   https://en.wikipedia.org/wiki/NTFS_symbolic_link
   "Wikipedia: NTFS symbolic link"
+[StackOverflow: How to make symbolic link with cygwin in Windows 7]:
+  https://stackoverflow.com/questions/3648819/how-to-make-symbolic-link-with-cygwin-in-windows-7
+  "StackOverflow: How to make symbolic link with cygwin in Windows 7"
 [ThreadScope]:
   http://www.haskell.org/haskellwiki/ThreadScope
   "ThreadScope is a tool for performance profiling of parallel Haskell programs."
