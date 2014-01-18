@@ -31,7 +31,9 @@
 
 # Enable colorization of standard commands.
 if [[ -x /usr/bin/dircolors ]]; then
-    eval "$(dircolors -b)"
+    [[ -f ~/.dircolors && -r ~/.dircolors ]] \
+        && eval "$(dircolors -b ~/.dircolors)" \
+        || eval "$(dircolors -b)"
 
     alias ls='ls --color=auto'
     alias dir='dir --color=auto'
