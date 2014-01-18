@@ -12,11 +12,14 @@ shopt -s checkwinsize
 # {{{ History Options #########################################################
 
 # Don't put duplicate lines in the history.
-export HISTCONTROL="$HISTCONTROL${HISTCONTROL:+,}ignoredups"
+HISTCONTROL="$HISTCONTROL${HISTCONTROL:+,}ignoredups"
 
 # Increase history size to some very high, but sensible value. It's not as fast
 # on Windows as you might expect comming from UNIX/Linux.
-export HISTSIZE=100000
+HISTSIZE=100000
+
+# Don't truncate history file.
+HISTFILESIZE=
 
 # }}} History Options #########################################################
 
@@ -37,29 +40,27 @@ if [[ "$(systemName)" == 'MinGW' ]]; then
     unset rootDir
 fi
 
-export PS1
-
 # }}} Prompt string ###########################################################
 
 if [[ -d "$HOME/man" ]]; then
-    export MANPATH="$HOME/man${MANPATH:+:}$MANPATH"
+    MANPATH="$HOME/man${MANPATH:+:}$MANPATH"
 fi
 
 if haveCommand 'less'; then
-    export PAGER='less'
+    PAGER='less'
 fi
 
 for cmd in 'vim' 'vi'; do
     if haveCommand "$cmd"; then
-        export EDITOR="$cmd"
-        export VISUAL="$cmd"
+        EDITOR="$cmd"
+        VISUAL="$cmd"
         break
     fi
 done
 
 for cmd in 'elinks' 'links'; do
     if haveCommand "$cmd"; then
-        export BROWSER="$cmd"
+        BROWSER="$cmd"
         break
     fi
 done
