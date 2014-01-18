@@ -7,6 +7,49 @@ Reusable snippets of code, simple reusable scripts, etc.
 Scripts
 =======
 
+Bash \*rc scripts
+-----------------
+
+Flexible collection of Bash \*rc scripts that is used on various systems that
+include:
+
+* Debian and Ubuntu Linux distributions.
+* Cygwin and Msys Git on Windows 7.
+
+It might work on other systems as well but it wasn't tested.
+
+To install this on Linux system just create symbolic link `~/.bashrc` that
+points to `bashrc/dot.bashrc`:
+
+    [ -e ~/.bashrc ] && mv ~/.bashrc{,~} # Backup
+    ln -s {$PATH_TO_REPOSITORY/bashrc/dot,~/}.bashrc
+
+Substitute `$PATH_TO_REPOSITORY` for whatever directory was used for this
+repository clone, e.g. `~/opt/github.com/trskop/snippets`.
+
+In Cygwin environment above installation will work also, but note that symbolic
+links created will be Cygwin symbolic links and not [NTFS symbolic links][NTFS
+symbolic link]. Plan is to support NTFS symbolic links also.
+
+In Msys environment it is possible to use [NTFS symbolic links][NTFS symbolic
+link], but then it will be necessary to do it for all component scripts that
+you want enabled, because `dot.bashrc` script doesn't understand [NTFS symbolic
+links][NTFS symbolic link]. On Windows 7 installation looks like this:
+
+    rem To simplify things go to the directory Msys Git considers as its home
+    rem directory.
+
+    mklink .bashrc %PATH_TO_REPOSITORY%\bashrc\dot.bashrc
+    mklink .bash_aliases %PATH_TO_REPOSITORY%\bashrc\dot.bash_aliases
+    mklink .bash_completion %PATH_TO_REPOSITORY%\bashrc\dot.bash_completion
+    mklink .bash_functions %PATH_TO_REPOSITORY%\bashrc\dot.bash_functions
+    mklink .bash_interactive %PATH_TO_REPOSITORY%\bashrc\dot.bash_interactive
+    mklink .bash_noninteractive %PATH_TO_REPOSITORY%\bashrc\dot.bash_noninteractive
+
+Where `%PATH_TO_REPOSITORY%` is where this repository was cloned to. It might
+also be relative path as on POSIX systems.
+
+
 Install Haskell Package in a Sandbox
 ------------------------------------
 
@@ -60,6 +103,9 @@ for full license text.
 [ghc-gc-tune]:
   https://donsbot.wordpress.com/2010/07/05/ghc-gc-tune-tuning-haskell-gc-settings-for-fun-and-profit/
   "Don Stewart's Blog: ghc-gc-tune: Tuning Haskell GC settings for fun and profit"
+[NTFS symbolic link]:
+  https://en.wikipedia.org/wiki/NTFS_symbolic_link
+  "Wikipedia: NTFS symbolic link"
 [ThreadScope]:
   http://www.haskell.org/haskellwiki/ThreadScope
   "ThreadScope is a tool for performance profiling of parallel Haskell programs."
