@@ -28,13 +28,14 @@ Substitute `$PATH_TO_REPOSITORY` for whatever directory was used for this
 repository clone, e.g. `~/opt/github.com/trskop/snippets`.
 
 In Cygwin environment above installation will work also, but note that symbolic
-links created will be Cygwin symbolic links and not [NTFS symbolic links][NTFS
-symbolic link]. Plan is to support NTFS symbolic links also.
+links created will be Cygwin symbolic links and not [NTFS symbolic links
+][NTFS symbolic link]. Plan is to support NTFS symbolic links also.
 
-In Msys environment it is possible to use [NTFS symbolic links][NTFS symbolic
-link], but then it will be necessary to do it for all component scripts that
-you want enabled, because `dot.bashrc` script doesn't understand [NTFS symbolic
-links][NTFS symbolic link]. On Windows 7 installation looks like this:
+In Msys environment it is possible to use [NTFS symbolic links
+][NTFS symbolic link], but then it will be necessary to do it for all component
+scripts that you want enabled, because `dot.bashrc` script doesn't understand
+[NTFS symbolic links][NTFS symbolic link]. On Windows 7 installation looks like
+this:
 
     rem To simplify things go to the directory Msys Git considers as its home
     rem directory.
