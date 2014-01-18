@@ -48,7 +48,7 @@ esac
 
 # Git prompt adds current branch information. This will also work for Msys Git.
 if haveCommand '__git_ps1'; then
-    PS1="$(sed "s/\([\\][wW]\)/\1\$(__git_ps1)/" <<< "$PS1")"
+    PS1="$(sed "s/\([\\][wW]\)/\1\$(__git_ps1)/g" <<< "$PS1")"
 fi
 
 # vim: tabstop=4 shiftwidth=4 expandtab filetype=sh
