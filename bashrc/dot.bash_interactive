@@ -35,6 +35,14 @@ fi
 if [[ "$(systemName)" == 'MinGW' ]]; then
     # Variable MSYSTEM is defined by MinGW/Msys.
     PS1='\[\033]0;$MSYSTEM:${PWD//[^[:ascii:]]/?}\007\]'"$PS1"
+else
+    case "$TERM" in
+      xterm*|rxvt*)
+        PS1='\[\033]0;\u@\h \W\007\]'"$PS1"
+        ;;
+      *)
+        ;;
+    esac
 fi
 
 # }}} Prompt string ###########################################################
