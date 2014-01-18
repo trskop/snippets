@@ -36,29 +36,64 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Order in which support scripts are sourced. It is possible to remove/add
-# additiona depending on your specific needs.
-declare -a bashrc_suffixes=(
-    'noninteractive'
-    'functions'
-    'interactive'
-    'aliases'
-    'completion'
-)
-declare rcfile
 
-# Source bashrc components one by one.
-for sfx in "${bashrc_suffixes[@]}"; do
-    rcfile="$HOME/.bash_${sfx}"
+# Find all files that should be sourced. Separating this from the actual
+# sourcing allows us to further limit side effects, like variable overwrite
+# etc.
+function __dot_bashrc_rcfiles_for_sourcing()
+{
+    # Order in which support scripts are sourced. It is possible to remove/add
+    # additiona depending on your specific needs.
+    #
+    # Item named 'noninteractive' is a boundary, everything before including
+    # it is sourced for non-interactive shell.
+    local -r -a bashrc_suffixes=(
+        'noninteractive'
+        'functions'
+        'interactive'
+        'aliases'
+        'completion'
+    )
 
-    [[ -f "$rcfile" ]] && [[ -r "$rcfile" ]] && . "$rcfile"
+    # If ~/.bashrc is a symlink, then it will look for scripts dot.bash_${sfx}
+    # in the directory where that link points to. This allows to use both, the
+    # repository scripts and user's custom scripts.
+    if [[ -L "$HOME/.bashrc" ]]; then
+        local -r repo_dir="$(dirname "`readlink -m "$HOME/.bashrc"`")"
+    else
+        local -r repo_dir=''
+    fi
 
-    # If not running interactively, don't do anything else.
-    [[ "${sfx}" == 'noninteractive' ]] && [[ -z "$PS1" ]] && break
+    # Make list of files that should be sourced.
+    local rcfile
+    local repo_rcfile
+    for sfx in "${bashrc_suffixes[@]}"; do
+        rcfile="$HOME/.bash_${sfx}"
+
+        if [[ -n "$repo_dir" ]]; then
+            repo_rcfile="$repo_dir/dot.bash_${sfx}"
+
+            # Don't include ~/.bash_${sfx} if it's a link to the
+            # "$repo_rcfile", that would cause it to be included twice.
+            [[ -L "$rcfile" && "`readlink -m "$rcfile"`" == "$repo_rcfile" ]] \
+                && rcfile=''
+        else
+            repo_rcfile=''
+        fi
+
+        for file in "$repo_rcfile" "$rcfile"; do
+            [[ -n "$file" && -f "$file" && -r "$file" ]] \
+                && printf '%q\n' "$file"
+        done
+
+        # If not running interactively, don't do anything else.
+        [[ "${sfx}" == 'noninteractive' && $- != *i* ]] && break
+    done
+}
+
+for rcfile in `__dot_bashrc_rcfiles_for_sourcing`; do
+    . "$rcfile"
 done
-
-# Cleanup global variables to prevent global namespace polution.
-unset -v rcfile
-unset -v bashrc_suffixes
+unset __dot_bashrc_rcfiles_for_sourcing
 
 # vim: tabstop=4 shiftwidth=4 expandtab filetype=sh
