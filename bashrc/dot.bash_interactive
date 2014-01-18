@@ -24,12 +24,13 @@ export HISTSIZE=100000
 
 PS1='\[\e[32m\][ \[\e[37m\]\u@\h \W\[\e[32m\] ]\$\[\e[22;0m\] '
 
-# Prompt modifikacation for SCREEN
+# Prompt modifikacation for SCREEN.
 if [[ -n "$WINDOW" ]]; then
-    PS1="$(sed "/\\h\#/b; /\\h/s/\(\\h\)/\1\#$WINDOW/" <<< "$PS1")"
+    PS1="$(sed "/\\h\#/b; s/\(\\h\)/\1\#$WINDOW/" <<< "$PS1")"
 fi
 
 if [[ "$(systemName)" == 'MinGW' ]]; then
+    # Variable MSYSTEM is defined by MinGW/Msys.
     PS1='\[\033]0;$MSYSTEM:${PWD//[^[:ascii:]]/?}\007\]'"$PS1"
 
     declare rootDir="$(mingwRootDir)"
