@@ -1,9 +1,19 @@
 # {{{ Shell Options ###########################################################
 
+# Report job state changes immediately and don't wait for printing new prompt.
 set -b
+
+# Turn on vi-style line editing interface.
 set -o vi
+
+# Use visible bell (if available) instead of audible, which is the default.
 set bell-style visible
+
+# Check the window size after each command and, if necessary,
+# update the values of LINES and COLUMNS.
 shopt -s checkwinsize
+
+# Append to the history file, don't overwrite it.
 shopt -s histappend
 
 # }}} Shell Options ###########################################################
