@@ -1,11 +1,13 @@
 Description
 ===========
 
-Reusable snippets of code, simple reusable scripts, etc.
+Reusable snippets of code, simple reusable scripts, configuration files (AKA
+dot files), etc.
 
 
-Scripts
-=======
+Configuration files
+===================
+
 
 Bash \*rc scripts
 -----------------
@@ -52,6 +54,9 @@ this:
 Where `%PATH_TO_REPOSITORY%` is where this repository was cloned to. It might
 also be relative path as on POSIX systems.
 
+
+Scripts
+=======
 
 Install Haskell Package in a Sandbox
 ------------------------------------
