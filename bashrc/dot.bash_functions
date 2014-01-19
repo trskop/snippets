@@ -55,6 +55,22 @@ function systemName()
     esac
 }
 
+# Usage:
+#   __dot_bashrc_error STRING [...]
+function __dot_bashrc_error()
+{
+    local -r core_format='ERROR: %s'
+
+    # Use colors if output is a terminal.
+    if [[ -t 1 ]]; then
+        local -r format="\e[31m${core_format}\e[22;0m\n"
+    else
+        local -r format="$core_format\n"
+    fi
+
+    printf "$format" "$(echo "$@")"
+}
+
 if [[ "$(systemName)" == 'MinGW' ]]; then
     function mingwRootDir()
     {
