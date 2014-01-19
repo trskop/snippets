@@ -67,8 +67,10 @@ function __dot_bashrc_rcfiles_for_sourcing()
     # Make list of files that should be sourced.
     local rcfile
     local repo_rcfile
+    local rcdir
     for sfx in "${bashrc_suffixes[@]}"; do
         rcfile="$HOME/.bash_${sfx}"
+        rcdir="${rcfile}.d"
 
         if [[ -n "$repo_dir" ]]; then
             repo_rcfile="$repo_dir/dot.bash_${sfx}"
@@ -86,7 +88,32 @@ function __dot_bashrc_rcfiles_for_sourcing()
                 && printf '%q\n' "$file"
         done
 
-        # If not running interactively, don't do anything else.
+        if [[ -d "$rcdir" ]]; then
+            # Ignore hidden files and backup files. Sort output to get
+            # deterministic behaviour. Trailing '/' is important in case if
+            # $rcdir is a symbolic link.
+            find "${rcdir}/" \
+                -mindepth 1 -maxdepth 1 \
+                '(' \
+                    '(' -type f -o -type l ')' \
+                    -a -readable \
+                    -a '!' '(' \
+                        -name '.*' \
+                        -o -name '*~' \
+                        -o -name '*.bac' \
+                    ')' \
+                ')' \
+                -print \
+            | sort \
+            | tr '\n' '\0' \
+            | while IFS= read -d $'' file; do
+                # Formating option "%q" is Bash specific, see "help printf".
+                printf '%q\n' "$file"
+            done
+        fi
+
+        # If not running interactively, don't do anything else. Note, that
+        # 'noninteractive' behaves as a separator.
         [[ "${sfx}" == 'noninteractive' && $- != *i* ]] && break
     done
 }
