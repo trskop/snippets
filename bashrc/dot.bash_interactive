@@ -4,10 +4,9 @@ set -b
 set -o vi
 set bell-style visible
 shopt -s checkwinsize
+shopt -s histappend
 
 # }}} Shell Options ###########################################################
-
-# {{{ Environment Variables ###################################################
 
 # {{{ History Options #########################################################
 
@@ -47,6 +46,8 @@ fi
 
 # }}} Prompt string ###########################################################
 
+# {{{ Other Environment Variables #############################################
+
 if [[ -d "$HOME/man" ]]; then
     MANPATH="$HOME/man${MANPATH:+:}$MANPATH"
 fi
@@ -70,6 +71,6 @@ for cmd in 'elinks' 'links'; do
     fi
 done
 
-# }}} Environment Variables ###################################################
+# }}} Other Environment Variables #############################################
 
 # vim: tabstop=4 shiftwidth=4 expandtab filetype=sh
