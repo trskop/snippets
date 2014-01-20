@@ -98,8 +98,8 @@ function haveCommand()
 function main()
 {
     local -a -r knownCommands=(
-        'gv'
         'evince'
+        'gv'
     )
     local -a evinceOptions=()
     local -a gvOptions=()
