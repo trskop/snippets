@@ -33,7 +33,7 @@ In [Cygwin][] environment above installation will work also, but note that on
 some systems symbolic links created be [Cygwin][] are regular files and not
 [NTFS symbolic links ][NTFS symbolic link]. See [StackOverflow: How to make
 symbolic link with cygwin in Windows 7][] question and [Cygwin User's
-Guide][Cygwin User's Guide -- Sybolic Links] for details how to change this. 
+Guide][Cygwin User's Guide -- Sybolic Links] for details how to change this.
 
 In Msys environment it is possible to use [NTFS symbolic links
 ][NTFS symbolic link], but then it will be necessary to do it for all component
@@ -57,6 +57,52 @@ also be relative path as on POSIX systems.
 
 Scripts
 =======
+
+Wrapper for PDF viewers
+-----------------------
+
+`xpdf-compat.sh -h`:
+
+    Compatibility wrapper that provides xpdf-like command line interface for
+    other PDF viewers.
+
+    Usage:
+
+      xpdf-compat.sh [OPTIONS] [PDF_FILE [PAGE_NUMBER|+NAMED_DESTINATION]]
+
+    Options:
+
+      -fullscreen
+
+        Open PDF viewer in fullscreen mode if it supports it.
+
+      -h, -?, [-]-help
+
+        Print this help information and exit. Not passed down to PDF viewer.
+
+      -V, [-]-verbose
+
+        This script will print what it's doing. Not passed down to PDF viewer.
+
+    Currently supported PDF viewers are Evince, gv and pdftotext (for textual
+    viewing only).
+
+    To force console viewing just unset DISPLAY, e.g.:
+
+      $ DISPLAY= xpdf-compat.sh some.pdf
+
+    By default output of texttopdf passed to pager. To disable this just
+    redirect stadard output to a file or pipe it to a different program,
+    because pager is not invoked if the standard output is not a TTY. This way
+    you can pipe it to other commands like fmt:
+
+      $ DISPLAY= xpdf-compat.sh some.pdf | fmt | less
+
+    If there is no xpdf on your system then it might be a good idea to put this
+    script somewhere in to your PATH and create alias for it:
+
+      alias xpdf='xpdf-compat'
+
 
 Install Haskell Package in a Sandbox
 ------------------------------------
