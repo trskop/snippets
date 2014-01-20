@@ -70,7 +70,19 @@ Options:
 
     This script will print what it's doing. Not passed down to PDF viewer.
 
-Currently supported PDF viewers are Evince and gv.
+Currently supported PDF viewers are Evince, gv and pdftotext (for textual
+viewing only).
+
+To force console viewing just unset DISPLAY, e.g.:
+
+    $ DISPLAY= xpdf-compat.sh some.pdf
+
+By default output of texttopdf passed to pager. To disable this just redirect
+stadard output to a file or pipe it to a different program, because pager is
+not invoked if the standard output is not a TTY. This way you can pipe it to
+other commands like fmt:
+
+    $ DISPLAY= xpdf-compat.sh some.pdf | fmt | less
 EOF
 }
 
@@ -95,14 +107,49 @@ function haveCommand()
     hash "$1" >& /dev/null
 }
 
+function sensiblePager()
+{
+    # Debian/Ubuntu provides 'sensible-pager' wrapper for selecting pager
+    # application and alternatives framework provides 'pager' symbolic link for
+    # system-wide prefered implementation.
+    local -r -a pagerPreferences=(
+        'sensible-pager'
+        "$PAGER"
+        'pager'
+        'less'
+        'more'
+    )
+
+    for cmd in "${pagerPreferences[@]}"; do
+        if [[ -z "$cmd" ]]; then
+            # $PAGER: Variable not set, ignored.
+            continue
+        fi
+
+        if haveCommand "$cmd"; then
+            echo "$cmd"
+            return 0
+        fi
+    done
+
+    return 1
+}
+
 function main()
 {
     local -a -r knownCommands=(
         'evince'
         'gv'
+        'pdftotext'
+    )
+    local -A -r hasGui=(
+        ['evince']=1
+        ['gv']=1
+        ['pdftotext']=0
     )
     local -a evinceOptions=()
     local -a gvOptions=()
+    local -a pdftotextOptions=()
 
     local -i haveFile=0
     local -i havePosition=0
@@ -119,6 +166,7 @@ function main()
           '-fullscreen')
             evinceOptions=("${evinceOptions[@]}" '--fullscreen')
             gvOptions=("${gvOptions[@]}" '--fullscreen')
+            # Doesn't make sense for pdftotext, ignored.
             ;;
           '-V'|'-verbose'|'--verbose')
             # This option is not passed down.
@@ -136,6 +184,7 @@ function main()
                 haveFile=1
                 evinceOptions=("${evinceOptions[@]}" "$arg")
                 gvOptions=("${gvOptions[@]}" "$arg")
+                pdftotextOptions=("${pdftotextOptions[@]}" "$arg")
             else
                 havePosition=1
                 case "$arg" in
@@ -148,6 +197,7 @@ function main()
                         "${gvOptions[@]}"
                         "--page=${arg#+}"
                     )
+                    # Doesn't make sense for pdftotext, ignored.
                     ;;
                   *)
                     if grep -q -E '^[0-9]+$' <<< "$arg"; then
@@ -169,13 +219,48 @@ function main()
         esac
     done
 
+    # Send output of pdftotext to a pipe instead of a file.
+    # TODO: Consider usage of temporary file.
+    pdftotextOptions=("${pdftotextOptions[@]}" '-')
+
     for command in "${knownCommands[@]}"; do
-        info "${command}:" 'Checking for availability.'
+        info "${command}:" 'Checking command for availability.'
         if haveCommand "$command"; then
+            # Skip GUI applications if there is no X server available.
+            if (( ${hasGui[$command]} )) && [[ -z "$DISPLAY" ]]; then
+                continue
+            fi
+
             eval "local -r -a options=(\"\${${command}Options[@]}\")"
 
-            info "Executing:" "$command" "${options[@]}"
-            exec "$command" "${options[@]}" >& /dev/null
+            if (( ${hasGui[$command]} )); then
+                info "Executing:" "$command" "${options[@]}"
+                exec "$command" "${options[@]}" >& /dev/null
+            else
+                # TODO: This code is in a lot of ways specific to pdftotext; it
+                # should be generalized.
+
+                if (( ${#options[@]} < 2 )); then
+                    error 2 '%s: %s' "$command" 'Requires PDF_FILE argument.'
+                fi
+
+                if [[ -t 1 ]]; then
+                    local -r pagerCmd="$(sensiblePager || echo '')"
+                    if [[ -z "$pagerCmd" ]]; then
+                        error 2 '%s\n\n    %s' \
+                            'Unable to find suitable pager implementation.' \
+                            'Consider setting up PAGER environment variable.'
+                    fi
+
+                    info "Executing:" "$command" "${options[@]}" '|' "$pagerCmd"
+                    "$command" "${options[@]}" | "$pagerCmd"
+                    exit $?
+                else
+                    info "Executing:" "$command" "${options[@]}"
+                    "$command" "${options[@]}"
+                    exit $?
+                fi
+            fi
         fi
     done
 
