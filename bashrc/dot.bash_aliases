@@ -91,4 +91,10 @@ then
     alias screen='TERM=rxvt-unicode screen'
 fi
 
+# When xpdf is not available try to use xpdf-like wrapper for other PDF
+# viewers.
+if ! haveCommand 'xpdf' && haveCommand 'xpdf-compat'; then
+    alias xpdf='xpdf-compat'
+fi
+
 # vim: tabstop=4 shiftwidth=4 expandtab filetype=sh
