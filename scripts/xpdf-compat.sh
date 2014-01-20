@@ -2,11 +2,6 @@
 
 # Compatibility wrapper that provides xpdf-like command line interface for
 # other PDF viewers.
-#
-# If there is no xpdf on your system then it might be a good idea to put this
-# script somewhere in to your PATH and create alias for it:
-#
-#  alias xpdf='xpdf-compat'
 
 # Copyright (c) 2013, 2014, Peter Trsko <peter.trsko@gmail.com>
 #
@@ -75,14 +70,19 @@ viewing only).
 
 To force console viewing just unset DISPLAY, e.g.:
 
-    $ DISPLAY= xpdf-compat.sh some.pdf
+  $ DISPLAY= xpdf-compat.sh some.pdf
 
 By default output of texttopdf passed to pager. To disable this just redirect
 stadard output to a file or pipe it to a different program, because pager is
 not invoked if the standard output is not a TTY. This way you can pipe it to
 other commands like fmt:
 
-    $ DISPLAY= xpdf-compat.sh some.pdf | fmt | less
+  $ DISPLAY= xpdf-compat.sh some.pdf | fmt | less
+
+If there is no xpdf on your system then it might be a good idea to put this
+script somewhere in to your PATH and create alias for it:
+
+  alias xpdf='xpdf-compat'
 EOF
 }
 
