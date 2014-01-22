@@ -80,4 +80,29 @@ if [[ "$(systemName)" == 'MinGW' ]]; then
     }
 fi
 
+# Find all Git repositories starting down from specified directory and
+# execute specified command in each of those.
+#
+# Usage:
+#   for_all_git_repositories DIRECTORY COMMAND [COMMAND_ARGUMENTS]
+#
+# Examples:
+#   for_all_git_repositories ~/opt git pull     # Get all repos up-to-date.
+#   for_all_git_repositories ~/opt pwd          # List all found repositories.
+function for_all_git_repositories()
+{
+    local -r startingPointDir="$1"; shift
+
+    find "$startingPointDir" \
+        -type d \
+        -name '.git' \
+        -printf '%h\0' \
+    | while IFS= read -d $'' repo; do
+    (
+        cd "$repo"
+        "$@"
+    )
+    done
+}
+
 # vim: tabstop=4 shiftwidth=4 expandtab filetype=sh
