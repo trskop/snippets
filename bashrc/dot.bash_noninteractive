@@ -45,67 +45,67 @@ fi
 
 if [[ -f "$HOME/.bash_proxies" ]] && [[ -r "$HOME/.bash_proxies" ]]; then
     source "$HOME/.bash_proxies"
-fi
 
-declare -i len
-declare -i idx
+    declare -i len
+    declare -i idx
 
-len=${#httpProxies[@]}
-if (( len > 0 )); then
-    if (( len > 1 )); then
-        idx=$((RANDOM % len))
-    else
-        idx=0
+    len=${#httpProxies[@]}
+    if (( len > 0 )); then
+        if (( len > 1 )); then
+            idx=$((RANDOM % len))
+        else
+            idx=0
+        fi
+
+        http_proxy="${httpProxies[$idx]}"
+        HTTP_PROXY="$http_proxy"
     fi
 
-    http_proxy="${httpProxies[$idx]}"
-    HTTP_PROXY="$http_proxy"
-fi
+    len=${#httpsProxies[@]}
+    if (( len > 0 )); then
+        if (( len > 1 )); then
+            idx=$((RANDOM % len))
+        else
+            idx=0
+        fi
 
-len=${#httpsProxies[@]}
-if (( len > 0 )); then
-    if (( len > 1 )); then
-        idx=$((RANDOM % len))
-    else
-        idx=0
+        https_proxy="${httpsProxies[$idx]}"
+        HTTPS_PROXY="$https_proxy"
     fi
 
-    https_proxy="${httpsProxies[$idx]}"
-    HTTPS_PROXY="$https_proxy"
-fi
+    len=${#ftpProxies[@]}
+    if (( len > 0 )); then
+        if (( len > 1 )); then
+            idx=$((RANDOM % len))
+        else
+            idx=0
+        fi
 
-len=${#ftpProxies[@]}
-if (( len > 0 )); then
-    if (( len > 1 )); then
-        idx=$((RANDOM % len))
-    else
-        idx=0
+        ftp_proxy="${ftpProxies[$idx]}"
+        FTP_PROXY="$ftp_proxy"
     fi
 
-    ftp_proxy="${ftpProxies[$idx]}"
-    FTP_PROXY="$ftp_proxy"
-fi
+    len=${#allProxies[@]}
+    if (( len > 0 )); then
+        if (( len > 1 )); then
+            idx=$((RANDOM % len))
+        else
+            idx=0
+        fi
 
-len=${#allProxies[@]}
-if (( len > 0 )); then
-    if (( len > 1 )); then
-        idx=$((RANDOM % len))
-    else
-        idx=0
+        all_proxy="${allProxies[$idx]}"
+        ALL_PROXY="$all_proxy"
     fi
 
-    all_proxy="${allProxies[$idx]}"
-    ALL_PROXY="$all_proxy"
+    # TODO: no_proxy
+
+    unset -v idx
+    unset -v len
+    unset -v httpProxies
+    unset -v httpsProxies
+    unset -v ftpProxies
+    unset -v allProxies
 fi
-
-# TODO: no_proxy
-
-unset -v idx
-unset -v len
-unset -v httpProxies
-unset -v httpsProxies
-unset -v ftpProxies
-unset -v allProxies
 
 # }}} Variables {http,https,ftp,all}_proxy ####################################
 # }}} Environment variables ###################################################
