@@ -1,0 +1,19 @@
+# This file was generated using:
+#
+#   https://github.com/trskop/snippets/blob/master/scripts/mkgitignore.sh
+#
+# and it's based on snippets taken from:
+#
+#   https://github.com/github/gitignore
+
+# {{{ Java.gitignore ##########################################################
+*.class
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.ear
+# }}} Java.gitignore ##########################################################
