@@ -50,9 +50,13 @@ readonly repoBaseUrl='git@github.com:'
 #readonly repoBaseUrl='https://github.com/'
 readonly -A gitRepositories=(
     ["${repoBaseUrl}trskop/snippets.git"]='github.com/trskop/snippets'
+    ["${repoBaseUrl}tomasr/molokai.git"]='github.com/tomasr/molokai'
+    ["${repoBaseUrl}altercation/vim-colors-solarized"]='github.com/altercation/vim-colors-solarized'
 )
 readonly -A gitRepositoryHooks=(
     ["${repoBaseUrl}trskop/snippets.git"]='snippetsHook'
+    ["${repoBaseUrl}tomasr/molokai.git"]='molokaiHook'
+    ["${repoBaseUrl}altercation/vim-colors-solarized"]='solarizedHook'
 )
 
 function snippetsHook()
@@ -80,6 +84,23 @@ function snippetsHook()
             "${script%.sh}" \
             "../opt/github.com/trskop/snippets/scripts/$script"
     done
+}
+
+function molokaiHook()
+{
+    mkSymbolicLink \
+        "$HOME/.vim/colors" \
+        'molokai.vim' \
+        '../../opt/github.com/tomasr/molokai/colors/molokai.vim'
+}
+
+function solarizedHook()
+{
+    mkSymbolicLink \
+        "$HOME/.vim/colors" \
+        'solarized.vim' \
+        '../../opt/github.com/altercation/vim-colors-solarized/colors/solarized.vim'
+
 }
 
 # {{{ Framework ###############################################################
