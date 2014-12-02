@@ -1,0 +1,9 @@
+doInstall()
+{
+    local -r dir="$1"; shift
+    local -r tarball="$1"; shift
+
+    tar -C "$dir" -xf "$tarball"
+    chmod +x install
+    ./install "$@"
+}
