@@ -1,0 +1,68 @@
+usage()
+{
+    local -r -i terminalWidth="$(tput cols || echo 80)"
+
+    fmt --width="$terminalWidth" << __END_OF_USAGE__
+Usage:
+
+  ${progName} [--prefix=DIR]
+
+  ${progName} {-h|--help}
+
+Options:
+
+  --prefix=DIR
+
+    Use DIR as installation prefix. If not specified, then value of \$HOME is
+    used.
+
+  --sudo
+
+    Use sudo when installing.
+__END_OF_USAGE__
+}
+
+doInstall()
+{
+    local -r dir="$1"; shift
+    local -r tarball="$1"; shift
+
+    local prefix=''
+    local -i useSudo=0
+
+    local arg=''
+    while (( $# )); do
+        arg="$1"; shift
+        case "$arg" in
+          -h|--help)
+            usage
+            exit 0
+            ;;
+          --prefix=*)
+            prefix="${arg#*=}"
+            ;;
+          --sudo)
+            useSudo=1
+            ;;
+          -*)
+            echo "${progName}: Error: \`$arg': Unknown option." 1>&2
+            exit 1
+            ;;
+          *)
+            echo "${progName}: Error: Too many arguments." 1>&2
+            exit 1
+            ;;
+        esac
+    done
+
+    if [[ -z "$prefix" ]]; then
+        prefix="$HOME"
+    fi
+
+    local -a tarCmd=('tar' '-C' "$prefix" '-xf' "$dir/$tarball")
+    if (( useSudo )); then
+        tarCmd=('sudo' "${tarCmd[@]}")
+    fi
+
+    "${tarCmd[@]}"
+}
