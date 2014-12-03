@@ -151,6 +151,7 @@ __END_OF_SHAR_HEADER_PART_1__
 cat "$scriptFile"
 
     cat << __END_OF_SHAR_HEADER_PART_2__
+
 main()
 {
     local -r sharFile="\$1"; shift
