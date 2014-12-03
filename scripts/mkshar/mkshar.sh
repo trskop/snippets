@@ -31,7 +31,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-declare -r version='0.1.0.0'
+declare -r version='0.1.1.0'
 
 # {{{ Messages and Error Handling #############################################
 
@@ -327,7 +327,7 @@ main()
         local -r attachmentFile="$(getInput $rawFilename "$attachment")"
 
         if [[ -z "$attachmentName" ]]; then
-            if [[ "$attachment" != '-' ]]; then
+            if [[ "$attachment" == '-' ]]; then
                 attachmentName='attachment'
             else
                 attachmentName="${attachmentFile##*/}"
