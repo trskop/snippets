@@ -41,14 +41,26 @@ case "`systemName`" in
         if [[ -f /etc/bash_completion && -r /etc/bash_completion ]]; then
             . /etc/bash_completion
         fi
+        readonly -i bashCompletionEnabled=1
         ;;
     *)
+        readonly -i bashCompletionEnabled=0
         ;;
 esac
 
 # Git prompt adds current branch information. This will also work for Msys Git.
 if haveCommand '__git_ps1'; then
     PS1="$(sed "s/\([\\][wW]\)/\1\$(__git_ps1)/g" <<< "$PS1")"
+fi
+
+if (( bashCompletionEnabled )); then
+    linuxbrewCompletionFile="$HOME/.linuxbrew/Library/Contributions/brew_bash_completion.sh"
+
+    if [[ -f "$linuxbrewCompletionFile" && -r "$linuxbrewCompletionFile" ]]; then
+        . "$linuxbrewCompletionFile"
+    fi
+
+    unset linuxbrewCompletionFile
 fi
 
 # vim: tabstop=4 shiftwidth=4 expandtab filetype=sh
