@@ -41,10 +41,10 @@ case "`systemName`" in
         if [[ -f /etc/bash_completion && -r /etc/bash_completion ]]; then
             . /etc/bash_completion
         fi
-        readonly -i bashCompletionEnabled=1
+        declare -r -i bashCompletionEnabled=1
         ;;
     *)
-        readonly -i bashCompletionEnabled=0
+        declare -r -i bashCompletionEnabled=0
         ;;
 esac
 
