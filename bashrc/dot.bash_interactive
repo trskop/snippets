@@ -81,6 +81,35 @@ for cmd in 'elinks' 'links'; do
     fi
 done
 
+# {{{ Etckeeper ###############################################################
+
+# For this snippet to use correctly please do the following configuration:
+#
+#   git config --global user.name 'Your Name'
+#   git config --global user.email 'your.em@il'
+#
+# And to be able to pass this environment variables in to root environment
+# when invoked using sudo, then folowing line has to be added in to
+# /etc/sudoers configuration file:
+#
+#   Defaults  env_keep+="GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_EMAIL"
+if haveCommand 'etckeeper'; then
+    if [ -e "$HOME/.gitconfig" ]; then
+        _gitAuthorName="`git config user.name`"
+        _gitAuthorEmail="`git config user.email`"
+
+        if [ -n "$_gitAuthorName" -a -n "$_gitAuthorEmail" ]; then
+            export GIT_AUTHOR_NAME="$_gitAuthorName"
+            export GIT_AUTHOR_EMAIL="$_gitAuthorEmail"
+            export GIT_COMMITTER_EMAIL="$_gitAuthorEmail"
+        fi
+
+        unset _gitAuthorName
+        unset _gitAuthorEmail
+    fi
+fi
+
+# }}} Etckeeper ###############################################################
 # }}} Other Environment Variables #############################################
 
 # vim: tabstop=4 shiftwidth=4 expandtab filetype=sh
