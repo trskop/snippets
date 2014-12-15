@@ -31,6 +31,11 @@
 
 # {{{ Environment variables ###################################################
 
+# Linuxbrew, see http://brew.sh/linuxbrew/ for details.
+if [[ -d "$HOME/.linuxbrew/bin" ]]; then
+    PATH="$HOME/.linuxbrew/bin:$PATH"
+fi
+
 # Cabal's bin directory.
 if [[ -d "$HOME/.cabal/bin" ]]; then
     PATH="$HOME/.cabal/bin:$PATH"

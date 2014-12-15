@@ -58,6 +58,18 @@ fi
 
 # {{{ Other Environment Variables #############################################
 
+# {{{ Linuxbrew ###############################################################
+
+if [[ -d "$HOME/.linuxbrew/share/man" ]]; then
+    MANPATH="$HOME/.linuxbrew/share/man${MANPATH:+:}$MANPATH"
+fi
+
+if [[ -d "$HOME/.linuxbrew/share/info" ]]; then
+    INFOPATH="$HOME/.linuxbrew/share/info${INFOPATH:+:}$INFOPATH"
+fi
+
+# }}} Linuxbrew ###############################################################
+
 if [[ -d "$HOME/man" ]]; then
     MANPATH="$HOME/man${MANPATH:+:}$MANPATH"
 fi
