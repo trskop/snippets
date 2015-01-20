@@ -84,15 +84,15 @@ fi
 
 for cmd in 'vim' 'vi'; do
     if haveCommand "$cmd"; then
-        EDITOR="$cmd"
-        VISUAL="$cmd"
+        export EDITOR="$cmd"
+        export VISUAL="$cmd"
         break
     fi
 done
 
 for cmd in 'elinks' 'links'; do
     if haveCommand "$cmd"; then
-        BROWSER="$cmd"
+        export BROWSER="$cmd"
         break
     fi
 done
