@@ -55,7 +55,7 @@ Options:
 
   -fullscreen
 
-    Open PDF viewer in fullscreen mode if it supports it.
+    Open PDF viewer in fullscreen mode if backend supports it.
 
   -h, -?, [-]-help
 
