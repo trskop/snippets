@@ -60,12 +60,16 @@ fi
 
 # {{{ Linuxbrew ###############################################################
 
-if [[ -d "$HOME/.linuxbrew/share/man" ]]; then
-    MANPATH="$HOME/.linuxbrew/share/man${MANPATH:+:}$MANPATH"
-fi
+if haveCommand brew; then
+    _brewPrefix="$(brew --prefix)"
+    if [[ -d "${brewPrefix}/share/man" ]]; then
+        MANPATH="${brewPrefix}/share/man${MANPATH:+:}$MANPATH"
+    fi
 
-if [[ -d "$HOME/.linuxbrew/share/info" ]]; then
-    INFOPATH="$HOME/.linuxbrew/share/info${INFOPATH:+:}$INFOPATH"
+    if [[ -d "${brewPrefix}/share/info" ]]; then
+        INFOPATH="${brewPrefix}/share/info${INFOPATH:+:}$INFOPATH"
+    fi
+    unset _brewPrefix
 fi
 
 # }}} Linuxbrew ###############################################################

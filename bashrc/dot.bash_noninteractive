@@ -32,7 +32,9 @@
 # {{{ Environment variables ###################################################
 
 # Linuxbrew, see http://brew.sh/linuxbrew/ for details.
-if [[ -d "$HOME/.linuxbrew/bin" ]]; then
+if [[ -d "$HOME/opt/linuxbrew/bin" ]]; then
+    PATH="$HOME/opt/linuxbrew/bin:$PATH"
+elif [[ -d "$HOME/.linuxbrew/bin" ]]; then
     PATH="$HOME/.linuxbrew/bin:$PATH"
 fi
 
