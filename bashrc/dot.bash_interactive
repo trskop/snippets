@@ -82,7 +82,7 @@ if haveCommand 'less'; then
     PAGER='less'
 fi
 
-for cmd in 'vim' 'vi'; do
+for cmd in 'nvim' 'vim' 'vi'; do
     if haveCommand "$cmd"; then
         export EDITOR="$cmd"
         export VISUAL="$cmd"
