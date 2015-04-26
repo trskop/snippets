@@ -199,6 +199,10 @@ function mkChecksum()
         variableName='SHA256SUM'
         command='sha256sum'
         ;;
+      'SHA512')
+        variableName='SHA512SUM'
+        command='sha512sum'
+        ;;
       *)
         warning '%s: Unknown hash algorithm.' "$hash"
         return
@@ -254,7 +258,11 @@ function checkChecksum()
     esac
 
     if isCommandAvailable "$command"; then
+        printf "Checking $hash of "
         "$command" --check - <<< "$checksum  $file"
+        if (( $? )); then
+            exit 2
+        fi
     else
         warning "%s: Command not found.\n  Can't check %s sum." \
             "$command" "$hash"
@@ -267,11 +275,12 @@ function normalDownload()
     local -r -i doChecksum="$1"; shift
     local -r sha1="$1"; shift
     local -r sha256="$1"; shift
+    local -r sha512="$1"; shift
     local -r md5="$1"; shift
     local -r url="$1"; shift
     local -r outFile="${1:-${url##*/}}"; shift
 
-    local -r -a knownHashes=('MD5' 'SHA1' 'SHA256')
+    local -r -a knownHashes=('MD5' 'SHA1' 'SHA256' 'SHA512')
     local dwlFile=''
     local checksum=''
 
@@ -294,6 +303,7 @@ function normalDownload()
             'MD5') checksum="$md5";;
             'SHA1') checksum="$sha1";;
             'SHA256') checksum="$sha256";;
+            'SHA512') checksum="$sha512";;
             *) checksum='';;
         esac
 
@@ -362,6 +372,7 @@ main()
     local arg=''
     local sha1=''
     local sha256=''
+    local sha512=''
     local md5=''
     local httpProxy=''
     local -a restArgs=()
@@ -419,6 +430,15 @@ main()
             ;;
           '--sha256='*)
             sha256="${arg#*=}"
+            ;;
+          '--sha512')
+            if (( $# == 0 )); then
+                usageError "\`$arg': Option is missing an argument."
+            fi
+            sha512="$1"; shift
+            ;;
+          '--sha512='*)
+            sha512="${arg#*=}"
             ;;
           '--md5')
             if (( $# == 0 )); then
@@ -500,6 +520,7 @@ main()
             "$doChecksum" \
             "$sha1" \
             "$sha256" \
+            "$sha512" \
             "$md5" \
             "$url" \
             "$outFile"
