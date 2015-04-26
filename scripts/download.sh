@@ -44,7 +44,7 @@ function usage()
 
     fmt --width="$terminalWidth" << EOF
 Simplified download wrapper script for wget/curl.
-    
+
 Usage:
 
   ${progName} [OPTIONS] URL [OUT_FILE]
@@ -66,11 +66,18 @@ Options:
     In case of download based on configuration file, with checksums specified,
     don't check them after successful download.
 
-  --no-checksum
+  --checksum
 
-    When downloading file based on specified URL then don't compute checksums.
+    (Turned on by default.)
+
+    When downloading file based on specified URL then compute checksums.
     In case of download based on configuration file, with checksums specified,
-    don't check them after successful download.
+    check them after successful download.
+
+  --check=FILE
+
+    Same as specifying \`--checksum', \`--no-download' and \`--config=FILE'
+    together.
 
   --sha1=CHECKSUM, --sha256=CHECKSUM, --md5=CHECKSUM
 
@@ -83,6 +90,12 @@ Options:
     Use specified HTTP proxy server by exporting http_proxy environment
     variable for wget/curl. Warning: this script doesn't check if HOST and PORT
     are syntactically valid values.
+
+  -d, --download
+
+    (Turned on by default.)
+
+    Download file specified by URL or using \`.download' file.
 
   -n, --no-download
 
@@ -353,37 +366,80 @@ main()
         arg="$1"; shift
         case "$arg" in
           '-h'|'--help')
-             usage
-             exit 0
-             ;;
+            usage
+            exit 0
+            ;;
           '--no-checksum')
-             doChecksum=0
-             ;;
-          '-c')
+            doChecksum=0
+            ;;
+          '--checksum')
+            doChecksum=1
+            ;;
+          '--check')
             if (( $# == 0 )); then
-                usageError "\`-c': Option is missing an argument."
+                usageError "\`$arg': Option is missing an argument."
+            fi
+            doChecksum=1
+            doDownload=0
+            configFile="$1"; shift
+            ;;
+          '--check='*)
+            doChecksum=1
+            doDownload=0
+            configFile="${arg#*=}"
+            ;;
+          '-c'|'--config')
+            if (( $# == 0 )); then
+                usageError "\`$arg': Option is missing an argument."
             fi
             configFile="$1"; shift
             ;;
           '--config='*)
-            configFile="${arg#--config=}"
+            configFile="${arg#*=}"
+            ;;
+          '--sha1')
+            if (( $# == 0 )); then
+                usageError "\`$arg': Option is missing an argument."
+            fi
+            sha1="$1"; shift
             ;;
           '--sha1='*)
-            sha1="${arg#--sha1=}"
+            sha1="${arg#*=}"
+            ;;
+          '--sha256')
+            if (( $# == 0 )); then
+                usageError "\`$arg': Option is missing an argument."
+            fi
+            sha256="$1"; shift
             ;;
           '--sha256='*)
-            sha256="${arg#--sha256=}"
+            sha256="${arg#*=}"
+            ;;
+          '--md5')
+            if (( $# == 0 )); then
+                usageError "\`$arg': Option is missing an argument."
+            fi
+            md5="$1"; shift
             ;;
           '--md5='*)
-            md5="${arg#--md5=}"
+            md5="${arg#*=}"
+            ;;
+          '--http-proxy')
+            if (( $# == 0 )); then
+                usageError "\`$arg': Option is missing an argument."
+            fi
+            httpProxy="$1"; shift
             ;;
           '--http-proxy='*)
-            httpProxy="${arg#--http-proxy=}"
+            httpProxy="${arg#*=}"
             case "$httpProxy" in
                 '') ;;
                 'http://'*) ;;
                 *) httpProxy="http://$httpProxy";;
             esac
+            ;;
+          '-d'|'--download')
+            doDownload=1
             ;;
           '-n'|'--no-download')
             doDownload=0
