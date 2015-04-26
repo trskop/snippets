@@ -47,7 +47,7 @@ Simplified download wrapper script for wget/curl.
 
 Usage:
 
-  ${progName} [OPTIONS] URL [OUT_FILE]
+  ${progName} [OPTIONS] URL [[-o|--output] OUT_FILE]
 
   ${progName} [OPTIONS] {--config=FILE|-c FILE}
 
@@ -59,6 +59,11 @@ Options:
 
     Download file based on configuration FILE. It has to contain at least one
     entry "URL=<url>".
+
+  -o FILE, --output=FILE
+
+    Use FILE as output file name. If output file name is not specified, then it
+    is derived from URL.
 
   --no-checksum
 
@@ -444,6 +449,15 @@ main()
           '-n'|'--no-download')
             doDownload=0
             ;;
+          '-o'|'--output')
+            if (( $# == 0 )); then
+                usageError "\`$arg': Option is missing an argument."
+            fi
+            outFile="$1"; shift
+            ;;
+          '--output='*)
+            outFile="${arg#*=}"
+            ;;
           *)
             restArgs=("${restArgs[@]}" "$arg")
             ;;
@@ -456,6 +470,10 @@ main()
         elif (( ${#restArgs[@]} > 2 )); then
             usageError 'Too many arguments.'
         elif (( ${#restArgs[@]} == 2 )); then
+            if [[ -n "$outFile" ]]; then
+                usageError "\`%s': Output file already defined as: \`%s'" \
+                    "${restArgs[1]}" "$outFile"
+            fi
             outFile="${restArgs[1]}"
         fi
         url="${restArgs[0]}"
