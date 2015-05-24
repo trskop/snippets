@@ -28,7 +28,7 @@ function findSuitableEditor()
         'emacs'
     )
 
-    # Neither $VISUAL nor $EDITOR were defined, try to finde something suitable.
+    # Neither $VISUAL nor $EDITOR were defined, try to find something suitable.
     for editor in "${editors[@]}"; do
         if haveCommand "$editor"; then
             echo "$editor"
@@ -113,7 +113,7 @@ function main()
 EOF
 
     tr '\n' '\0' < $list | while IFS= read -d $'' file; do
-        echo 
+        echo
         header begin "$file"
         cat "$repo/$file"
         header end "$file"
