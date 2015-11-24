@@ -67,6 +67,10 @@ if haveCommand 'apt-get'; then
     alias apt-get='sudo apt-get'
 fi
 
+if haveCommand 'cabal'; then
+    alias cabal='cabal --require-sandbox'
+fi
+
 if haveCommand 'ghci'; then
     # Option -ignore-dot-ghci will force ghci to not load settings from
     # ~/.ghc/ghci.conf configuration file.
