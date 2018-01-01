@@ -21,6 +21,7 @@ function findSuitableEditor()
     # 'sensible-editor' is Debian/Ubuntu specific.
     local -r -a editors=(
         'sensible-editor'
+        'nvim'
         'vim'
         'vi'
         'mcedit'
